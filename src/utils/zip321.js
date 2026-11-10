@@ -58,3 +58,4 @@ export function buildZip321Uri({ address, amount, memo }) {
   const query = params.length > 0 ? `?${params.join('&')}` : '';
   return `zcash:${address}${query}`;
 }
+

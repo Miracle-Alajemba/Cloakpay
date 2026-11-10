@@ -183,6 +183,14 @@ test('CodeIntegration uses Incoming Viewing Key (ivk), never Full Viewing Key (f
   assert(codeJsx.includes('ivk:'), 'ivk property missing in CodeIntegration');
 });
 
+test('ProtocolFlow accurately describes HTTP 402 and RFC 9110 (full explanation and short bullet)', () => {
+  const protocolJsx = readComponent('ProtocolFlow.jsx');
+  assert(protocolJsx.includes('Returns HTTP 402 with CloakPay’s payment challenge; RFC 9110 reserves the status code for future use.'), 'Short bullet RFC 9110 wording missing in ProtocolFlow');
+  assert(protocolJsx.includes('RFC 9110 reserves HTTP 402') && protocolJsx.includes('does not define a payment protocol. CloakPay uses 402 as its application-level payment challenge'), 'Full explanation RFC 9110 wording missing in ProtocolFlow');
+  assert(!protocolJsx.includes('reserved for digital payments'), 'Inaccurate "reserved for digital payments" found in ProtocolFlow');
+  assert(!protocolJsx.includes('reserved payment code'), 'Inaccurate "reserved payment code" found in ProtocolFlow');
+});
+
 // ─── PART 5: ROADMAP STATUS & PAGE STRUCTURE ────────────────────────────────
 
 console.log('\n\x1b[36m━━━ PART 5: Roadmap Status & Page Structure ━━━\x1b[0m\n');

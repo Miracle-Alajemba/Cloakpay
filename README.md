@@ -8,7 +8,7 @@
 
 ## ⚡ What is CloakPay?
 
-CloakPay resurrects the native web's **`HTTP 402 Payment Required`** status code using **Zcash shielded zero-knowledge cryptography** (Orchard / Halo 2). 
+RFC 9110 reserves HTTP 402 (‘Payment Required’) for future use; it does not define a payment protocol. CloakPay uses 402 as its application-level payment challenge and supplies payment instructions using a ZIP-321 URI with shielded Zcash (Orchard / Halo 2). 
 
 Unlike Ethereum, Solana, or Bitcoin Lightning:
 - **Zero Public Ledger Clustering**: Senders use Orchard shielded pools, concealing sender addresses, balances, and transaction graphs.
@@ -84,7 +84,7 @@ npm run build
 ---
 
 ## 📜 Standards & Compliance
-- **HTTP 402**: RFC 9110 Section 15.5.3
+- **HTTP 402**: RFC 9110 Section 15.5.3 (RFC 9110 reserves the status code for future use; CloakPay defines the application-level challenge protocol)
 - **ZIP-321**: Zcash Payment Request URIs
 - **ZIP-316**: Unified Addresses & Orchard Receiver Pools
 - **Halo 2**: Recursive Zero-Knowledge SNARKs without trusted setup

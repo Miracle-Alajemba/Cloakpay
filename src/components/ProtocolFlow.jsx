@@ -18,7 +18,7 @@ export default function ProtocolFlow() {
       badge: 'Client & API Gateway',
       description: 'A client calls an API endpoint without a valid token. The API gateway returns HTTP 402 Payment Required with a ZIP-321 payment request containing the price, recipient address, and an ephemeral session token.',
       details: [
-        'Returns HTTP status 402 (RFC 9110 §15.5.3 reserved payment code)',
+        'Returns HTTP 402 with CloakPay’s payment challenge; RFC 9110 reserves the status code for future use.',
         'Includes ZIP-321 URI with Base64url-encoded memo parameter',
         'Session token is tied to the caller request session',
       ],
@@ -73,7 +73,7 @@ export default function ProtocolFlow() {
             How CloakPay works under the hood
           </h2>
           <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans max-w-2xl mx-auto">
-            HTTP 402 is an HTTP status code reserved for digital payments in the web standard. CloakPay pairs this challenge with Zcash shielded transactions and ZIP-321 payment requests.
+            RFC 9110 reserves HTTP 402 (&lsquo;Payment Required&rsquo;) for future use; it does not define a payment protocol. CloakPay uses 402 as its application-level payment challenge and supplies payment instructions using a ZIP-321 URI.
           </p>
         </div>
 
