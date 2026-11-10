@@ -71,7 +71,7 @@ export default function ProtocolFlow() {
             <Lock className="w-3.5 h-3.5 text-emerald-400" />
             <span>ARCHITECTURE SPECIFICATION</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-display">
             How CloakPay Works
           </h2>
           <p className="mt-3 text-slate-300 text-sm sm:text-base">

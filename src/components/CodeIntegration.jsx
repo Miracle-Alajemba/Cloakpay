@@ -95,7 +95,7 @@ export default function CodeIntegration() {
             <Code2 className="w-3.5 h-3.5 text-emerald-400" />
             <span>DEVELOPER SDK & MIDDLEWARE</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-display">
             Integrate in 3 Lines of Code
           </h2>
           <p className="mt-3 text-slate-300 text-sm sm:text-base">

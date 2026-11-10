@@ -9,7 +9,7 @@ export default function Footer({ onOpenDemo }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-white/10">
-          
+
           {/* Brand Info */}
           <div className="md:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
@@ -25,7 +25,7 @@ export default function Footer({ onOpenDemo }) {
             </div>
 
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm">
-              The privacy-first micro-payment gateway powered by Zcash Encrypted Memos. 
+              The privacy-first micro-payment gateway powered by Zcash Encrypted Memos.
               Eliminating surveillance capitalism for artificial intelligence, paywalled media, and sovereign APIs.
             </p>
 
@@ -47,20 +47,20 @@ export default function Footer({ onOpenDemo }) {
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://zips.z.cash/zip-0321" 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a
+                  href="https://zips.z.cash/zip-0321"
+                  target="_blank"
+                  rel="noreferrer"
                   className="hover:text-emerald-400 transition-colors flex items-center gap-1"
                 >
                   ZIP-321 Standard <ExternalLink className="w-3 h-3 text-slate-500" />
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://zcash.readthedocs.io/en/latest/rtd_pages/orchard.html" 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a
+                  href="https://zcash.readthedocs.io/en/latest/rtd_pages/orchard.html"
+                  target="_blank"
+                  rel="noreferrer"
                   className="hover:text-emerald-400 transition-colors flex items-center gap-1"
                 >
                   Orchard Cryptography <ExternalLink className="w-3 h-3 text-slate-500" />
@@ -96,7 +96,7 @@ export default function Footer({ onOpenDemo }) {
                 </a>
               </li>
               <li>
-                <button 
+                <button
                   onClick={onOpenDemo}
                   className="hover:text-emerald-400 transition-colors text-left"
                 >
@@ -113,10 +113,10 @@ export default function Footer({ onOpenDemo }) {
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
-                <a 
-                  href="https://zashi.z.cash" 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a
+                  href="https://zashi.z.cash"
+                  target="_blank"
+                  rel="noreferrer"
                   className="hover:text-emerald-400 transition-colors flex items-center justify-between"
                 >
                   <span>Zashi (Electric Coin Co.)</span>
@@ -124,10 +124,10 @@ export default function Footer({ onOpenDemo }) {
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://ywallet.app" 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a
+                  href="https://ywallet.app"
+                  target="_blank"
+                  rel="noreferrer"
                   className="hover:text-emerald-400 transition-colors flex items-center justify-between"
                 >
                   <span>YWallet</span>
@@ -135,10 +135,10 @@ export default function Footer({ onOpenDemo }) {
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://zingo.app" 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a
+                  href="https://zingo.app"
+                  target="_blank"
+                  rel="noreferrer"
                   className="hover:text-emerald-400 transition-colors flex items-center justify-between"
                 >
                   <span>Zingo! Mobile</span>

@@ -103,15 +103,29 @@ export default function Hero({ onExploreDemo }) {
             </div>
 
             {/* Main Headline */}
-            <h1 ref={titleRef} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.12]">
-              The <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent">HTTP 402</span> Micropayment Gateway for AI & Media.
+            <h1 ref={titleRef} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.12] font-display">
+              The{' '}
+              <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent">
+                HTTP 402
+              </span>{' '}
+              Micropayment Gateway
+              <br className="hidden sm:block" />
+              {' '}for{' '}
+              <span className="bg-gradient-to-r from-white via-slate-200 to-emerald-300 bg-clip-text text-transparent">
+                AI&nbsp;&amp;&nbsp;Media
+              </span>.
             </h1>
 
-            {/* Subtitle with core Zcash value prop */}
-            <p ref={subtitleRef} className="mt-6 text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              Powered by <span className="text-emerald-400 font-semibold">Zcash Encrypted Memos</span> and ZIP-321 URIs. 
-              No user accounts. No invasive wallet-connect tracking. Zero IP or telemetry leakage. 
-              Unlock paywalled LLM inferences, confidential research, and digital assets in sub-second mempool broadcasts.
+            {/* Subtitle with core Zcash value prop — Stripe/Linear editorial styling */}
+            <p ref={subtitleRef} className="mt-6 text-base sm:text-lg text-slate-400 font-normal leading-relaxed max-w-2xl mx-auto lg:mx-0 font-sans">
+              Powered by{' '}
+              <span className="text-white font-medium">Zcash Encrypted Memos</span>{' '}
+              and{' '}
+              <span className="font-mono text-[0.85em] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">ZIP-321 URIs</span>.
+              {' '}No user accounts. No invasive wallet-connect tracking.{' '}
+              <span className="text-white font-medium">Zero&nbsp;IP&nbsp;or&nbsp;telemetry&nbsp;leakage</span>.
+              {' '}Unlock paywalled LLM inferences, confidential research, and digital assets
+              in sub-second mempool broadcasts.
             </p>
 
             {/* Action Buttons */}

@@ -59,7 +59,7 @@ export default function PrivacyComparison() {
             <EyeOff className="w-3.5 h-3.5 text-emerald-400" />
             <span>PRIVACY & ARCHITECTURE BENCHMARK</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-display">
             How CloakPay Compares
           </h2>
           <p className="mt-3 text-slate-300 text-sm sm:text-base">
