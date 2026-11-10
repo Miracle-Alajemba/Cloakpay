@@ -45,31 +45,36 @@ export default function Navbar({ onOpenDemo }) {
           </a>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <a
-              href="#protocol"
-              className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 text-slate-300"
-            >
-              Protocol
-            </a>
+          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-300">
             <a
               href="#demo"
-              className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 text-slate-300"
+              className="hover:text-emerald-400 transition-colors text-slate-300 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded px-1"
             >
-              Interactive Demo
+              Demo
+            </a>
+            <a
+              href="#protocol"
+              className="hover:text-emerald-400 transition-colors text-slate-300 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded px-1"
+            >
+              Architecture
             </a>
             <a
               href="#comparison"
-              className="hover:text-emerald-400 transition-colors text-slate-300"
+              className="hover:text-emerald-400 transition-colors text-slate-300 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded px-1"
             >
               Privacy Comparison
             </a>
             <a
               href="#developers"
-              className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 text-slate-300"
+              className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 text-slate-300 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded px-1"
             >
-              <Terminal className="w-3.5 h-3.5 text-emerald-400" />
               Developers
+            </a>
+            <a
+              href="#roadmap"
+              className="hover:text-emerald-400 transition-colors text-slate-300 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none rounded px-1"
+            >
+              Roadmap
             </a>
           </nav>
 

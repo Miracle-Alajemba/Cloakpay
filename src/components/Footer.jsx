@@ -24,14 +24,13 @@ export default function Footer({ onOpenDemo }) {
               </span>
             </div>
 
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm">
-              The privacy-first micro-payment gateway powered by Zcash Encrypted Memos.
-              Eliminating surveillance capitalism for artificial intelligence, paywalled media, and sovereign APIs.
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm font-sans">
+              A micropayment protocol helping API providers charge per request in shielded ZEC using ZIP-321 payment requests and HTTP 402.
             </p>
 
             <div className="flex items-center gap-2 pt-2 text-xs font-mono text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Zcash Orchard Network: Synced & Online</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>Specification: Zcash Orchard (ZIP-321 &amp; ZIP-316)</span>
             </div>
           </div>
 
@@ -69,6 +68,11 @@ export default function Footer({ onOpenDemo }) {
               <li>
                 <a href="#comparison" className="hover:text-emerald-400 transition-colors">
                   Zero-Metadata Matrix
+                </a>
+              </li>
+              <li>
+                <a href="#roadmap" className="hover:text-emerald-400 transition-colors">
+                  Implementation Roadmap
                 </a>
               </li>
             </ul>

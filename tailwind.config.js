@@ -26,9 +26,12 @@ export default {
         }
       },
       fontFamily: {
-        display: ['Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Outfit', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      letterSpacing: {
+        tightest: '-0.025em',
       },
       boxShadow: {
         'shield-glow': '0 0 35px -5px rgba(16, 185, 129, 0.25)',

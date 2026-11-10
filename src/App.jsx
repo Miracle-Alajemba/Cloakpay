@@ -6,6 +6,7 @@ import PaywallModal from './components/PaywallModal';
 import ProtocolFlow from './components/ProtocolFlow';
 import PrivacyComparison from './components/PrivacyComparison';
 import CodeIntegration from './components/CodeIntegration';
+import RoadmapStatus from './components/RoadmapStatus';
 import Footer from './components/Footer';
 
 export default function App() {
@@ -62,6 +63,9 @@ export default function App() {
 
         {/* Developer Integration Code Showcase */}
         <CodeIntegration />
+
+        {/* Implementation Status: What Works Today vs Planned */}
+        <RoadmapStatus />
       </main>
 
       {/* Paywall Modal Dialog */}

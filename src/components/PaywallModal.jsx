@@ -15,27 +15,35 @@ import {
   HelpCircle,
   QrCode,
   Shield,
-  Layers
+  Layers,
+  Code2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { encodeZip321Memo, buildZip321Uri } from '../utils/zip321';
 
 export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessionId, queryPrompt }) {
   const modalBackdropRef = useRef(null);
   const modalBoxRef = useRef(null);
 
-  // Zcash ZIP-321 details
+  // Zcash ZIP-321 parameters
   const amountZEC = '0.005';
   const usdValue = '~$0.18';
   const zcashUnifiedAddress = 'u1m6f94r727tt69g2sqg0x7x3a5h4g2k7w90mclp49q8vj9e450nsl8270xvw3v8w6n72u03h8xrqsqq48dyp';
   const memoString = `CloakPay:${sessionId || 'sess_9e14a8f9c'}`;
   
-  // Standard ZIP-321 URI
-  const zip321Uri = `zcash:${zcashUnifiedAddress}?amount=${amountZEC}&memo=${encodeURIComponent(memoString)}`;
+  // Spec-compliant ZIP-321 Base64url memo & URI (RFC 4648 §5 without '=' padding)
+  const base64urlMemo = encodeZip321Memo(memoString);
+  const zip321Uri = buildZip321Uri({
+    address: zcashUnifiedAddress,
+    amount: amountZEC,
+    memo: memoString
+  });
 
   // State management
   const [copiedField, setCopiedField] = useState(null);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
-  const [paymentStatus, setPaymentStatus] = useState('waiting'); // 'waiting' | 'broadcasting' | 'verifying' | 'confirmed'
+  // Status flow: 'waiting' -> 'detected' -> 'verifying' -> 'granted'
+  const [paymentStatus, setPaymentStatus] = useState('waiting');
   const [tab, setTab] = useState('qr'); // 'qr' | 'manual' | 'wallets'
 
   // GSAP Spring Entrance
@@ -50,13 +58,13 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
         );
         gsap.fromTo(
           modalBoxRef.current,
-          { opacity: 0, scale: 0.85, y: 30 },
+          { opacity: 0, scale: 0.9, y: 25 },
           { 
             opacity: 1, 
             scale: 1, 
             y: 0, 
             duration: 0.45, 
-            ease: 'back.out(1.5)',
+            ease: 'back.out(1.4)',
             delay: 0.05
           }
         );
@@ -118,14 +126,14 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
 
       tl.to(modalBoxRef.current, {
         opacity: 0,
-        scale: 0.92,
+        scale: 0.94,
         y: 15,
-        duration: 0.3,
+        duration: 0.25,
         ease: 'power2.in'
       }, 0)
       .to(modalBackdropRef.current, {
         opacity: 0,
-        duration: 0.3,
+        duration: 0.25,
         ease: 'power2.in'
       }, 0.05);
     } else {
@@ -136,20 +144,20 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
 
   // Simulate Payment broadcast & verification
   const handleSimulatePayment = () => {
-    setPaymentStatus('broadcasting');
+    setPaymentStatus('detected');
 
     setTimeout(() => {
       setPaymentStatus('verifying');
 
       setTimeout(() => {
-        setPaymentStatus('confirmed');
+        setPaymentStatus('granted');
 
         // Confetti celebration
         confetti({
-          particleCount: 120,
-          spread: 80,
+          particleCount: 100,
+          spread: 75,
           origin: { y: 0.6 },
-          colors: ['#10b981', '#34d399', '#f4b728', '#ffffff', '#2dd4bf'],
+          colors: ['#10b981', '#34d399', '#f4b728', '#ffffff'],
         });
 
         // Trigger graceful GSAP exit after user sees success confirmation
@@ -157,9 +165,9 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
           handleAnimatedClose(() => {
             onPaymentSuccess();
           });
-        }, 1000);
-      }, 1200);
-    }, 900);
+        }, 900);
+      }, 1000);
+    }, 800);
   };
 
   if (!isOpen) return null;
@@ -170,7 +178,7 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
       <div
         ref={modalBackdropRef}
         onClick={() => {
-          if (paymentStatus !== 'verifying' && paymentStatus !== 'confirmed') {
+          if (paymentStatus !== 'verifying' && paymentStatus !== 'granted') {
             handleAnimatedClose(onClose);
           }
         }}
@@ -180,37 +188,39 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
       {/* Modal Dialog Window */}
       <div
         ref={modalBoxRef}
-        className="relative w-full max-w-lg rounded-3xl bg-cloak-900 border border-emerald-500/30 shadow-2xl shadow-emerald-950/70 overflow-hidden z-10"
+        className="relative w-full max-w-lg rounded-2xl bg-cloak-900 border border-white/10 shadow-2xl overflow-hidden z-10"
       >
-        {/* Glow ambient accent */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
+        {/* Simulation Banner Notice */}
+        <div className="px-4 py-1.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between text-[11px] font-mono text-amber-300">
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+            Simulation — no real payment is made
+          </span>
+          <span className="text-amber-400/80">Demo Environment</span>
+        </div>
 
         {/* Modal Top Header */}
-        <div className="relative px-6 py-5 border-b border-white/10 flex items-center justify-between bg-cloak-850/60">
+        <div className="relative px-6 py-4 border-b border-white/10 flex items-center justify-between bg-cloak-850/70">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white font-sans">
-                  CloakPay Shielded Paywall
+                <h3 className="text-base font-semibold text-white font-display">
+                  Zcash Shielded Payment Request
                 </h3>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-semibold">
-                  HTTP 402
-                </span>
               </div>
               <p className="text-xs text-slate-400 font-mono">
-                Session Token: <span className="text-emerald-400">{sessionId || 'sess_9e14a8f9c'}</span>
+                Session token: <span className="text-emerald-400">{sessionId || 'sess_9e14a8f9c'}</span>
               </p>
             </div>
           </div>
 
           <button
             onClick={() => handleAnimatedClose(onClose)}
-            disabled={paymentStatus === 'verifying' || paymentStatus === 'confirmed'}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 cursor-pointer"
+            disabled={paymentStatus === 'verifying' || paymentStatus === 'granted'}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
             aria-label="Close Modal"
           >
             <X className="w-5 h-5" />
@@ -218,16 +228,16 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-5">
 
           {/* Amount and pricing summary */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-cloak-850 to-emerald-950/40 border border-emerald-500/20 flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-cloak-850 border border-white/10 flex items-center justify-between">
             <div>
               <span className="text-xs text-slate-400 font-mono uppercase tracking-wider block">
                 Required Micropayment
               </span>
               <div className="flex items-baseline gap-2 mt-0.5">
-                <span className="text-2xl font-extrabold text-white font-mono">
+                <span className="text-2xl font-semibold text-white font-mono">
                   {amountZEC} <span className="text-emerald-400">ZEC</span>
                 </span>
                 <span className="text-xs text-slate-400 font-mono">
@@ -238,11 +248,11 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
 
             <div className="text-right">
               <span className="text-[11px] text-slate-400 block font-mono">
-                Shielded Pool
+                Pool / Encoding
               </span>
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-full mt-1">
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-300 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 rounded-full mt-1">
                 <Shield className="w-3 h-3 text-emerald-400" />
-                Orchard (ZIP-321)
+                Orchard (ZIP-321 Base64url)
               </span>
             </div>
           </div>
@@ -251,9 +261,9 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
           <div className="flex rounded-xl bg-cloak-950 p-1 border border-white/5 text-xs font-medium">
             <button
               onClick={() => setTab('qr')}
-              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                 tab === 'qr'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -262,20 +272,20 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
             </button>
             <button
               onClick={() => setTab('manual')}
-              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                 tab === 'manual'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Copy className="w-3.5 h-3.5" />
-              Copy Address & Memo
+              <Code2 className="w-3.5 h-3.5" />
+              Address & Base64url Memo
             </button>
             <button
               onClick={() => setTab('wallets')}
-              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                 tab === 'wallets'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -287,16 +297,10 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
           {/* TAB 1: QR Code Scanner */}
           {tab === 'qr' && (
             <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="relative p-4 rounded-2xl bg-white shadow-xl shadow-emerald-500/10 group">
-                {/* Visual frame corners */}
-                <div className="absolute -top-1.5 -left-1.5 w-4 h-4 border-t-2 border-l-2 border-emerald-500" />
-                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 border-t-2 border-r-2 border-emerald-500" />
-                <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 border-b-2 border-l-2 border-emerald-500" />
-                <div className="absolute -bottom-1.5 -right-1.5 w-4 h-4 border-b-2 border-r-2 border-emerald-500" />
-
+              <div className="relative p-4 rounded-xl bg-white shadow-lg">
                 <QRCodeSVG
                   value={zip321Uri}
-                  size={190}
+                  size={180}
                   level="M"
                   includeMargin={false}
                   bgColor="#ffffff"
@@ -305,8 +309,8 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
 
                 {/* Center Zcash icon overlay badge */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-10 h-10 rounded-full bg-slate-950 border-2 border-emerald-400 flex items-center justify-center shadow-lg">
-                    <span className="font-extrabold text-emerald-400 font-mono text-sm leading-none">
+                  <div className="w-9 h-9 rounded-full bg-slate-950 border-2 border-emerald-400 flex items-center justify-center shadow">
+                    <span className="font-bold text-emerald-400 font-mono text-sm leading-none">
                       Z
                     </span>
                   </div>
@@ -315,40 +319,40 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
 
               <div className="text-center">
                 <p className="text-xs text-slate-300 font-medium">
-                  Scan with any mobile Zcash wallet (Zashi, YWallet, Zingo!)
+                  Scan with any ZIP-321 compatible Zcash wallet (Zashi, YWallet, Zingo!)
                 </p>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Amount and encrypted session memo are pre-filled automatically via ZIP-321
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Pre-fills address, 0.005 ZEC, and Base64url-encoded session memo
                 </p>
               </div>
 
               {/* Quick Copy ZIP-321 URI button */}
               <button
                 onClick={() => copyToClipboard(zip321Uri, 'uri')}
-                className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-300 hover:text-white transition-colors flex items-center justify-center gap-2 font-mono cursor-pointer"
+                className="w-full py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-300 hover:text-white transition-colors flex items-center justify-center gap-2 font-mono cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
               >
                 {copiedField === 'uri' ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-emerald-400">Copied ZIP-321 URI to Clipboard!</span>
+                    <span className="text-emerald-400">Copied ZIP-321 URI</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Copy Full ZIP-321 URI</span>
+                    <span>Copy ZIP-321 URI (zcash:u1...?memo=...)</span>
                   </>
                 )}
               </button>
             </div>
           )}
 
-          {/* TAB 2: Manual Copy Fields */}
+          {/* TAB 2: Manual Copy Fields & Spec Compliance */}
           {tab === 'manual' && (
             <div className="space-y-3 font-mono text-xs">
               {/* Address field */}
               <div className="space-y-1">
-                <label className="text-slate-400 text-[11px] flex items-center justify-between">
-                  <span>Zcash Unified Shielded Address (u1...)</span>
+                <div className="text-slate-400 text-[11px] flex items-center justify-between">
+                  <span>Zcash Unified Address (Recipient)</span>
                   <button
                     onClick={() => copyToClipboard(zcashUnifiedAddress, 'address')}
                     className="text-emerald-400 hover:underline flex items-center gap-1 text-[11px] cursor-pointer"
@@ -356,19 +360,35 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
                     {copiedField === 'address' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                     {copiedField === 'address' ? 'Copied' : 'Copy'}
                   </button>
-                </label>
-                <div className="p-2.5 rounded-xl bg-cloak-950 border border-white/10 text-slate-300 text-[11px] break-all leading-relaxed select-all">
+                </div>
+                <div className="p-2.5 rounded-lg bg-cloak-950 border border-white/10 text-slate-300 text-[11px] break-all leading-relaxed select-all">
                   {zcashUnifiedAddress}
                 </div>
               </div>
 
-              {/* Memo field */}
+              {/* Base64url Encoded Memo (ZIP-321 parameter) */}
               <div className="space-y-1">
-                <label className="text-slate-400 text-[11px] flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-emerald-300">
-                    <Sparkles className="w-3 h-3 text-emerald-400" />
-                    Required Encrypted Memo (Session Token)
+                <div className="text-slate-400 text-[11px] flex items-center justify-between">
+                  <span className="text-emerald-300">
+                    ZIP-321 Base64url Memo Parameter (<code className="text-slate-400">memo=</code>)
                   </span>
+                  <button
+                    onClick={() => copyToClipboard(base64urlMemo, 'base64')}
+                    className="text-emerald-400 hover:underline flex items-center gap-1 text-[11px] cursor-pointer"
+                  >
+                    {copiedField === 'base64' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    {copiedField === 'base64' ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+                <div className="p-2 rounded-lg bg-cloak-950 border border-emerald-500/25 text-emerald-400 font-mono text-[11px] break-all select-all">
+                  {base64urlMemo}
+                </div>
+              </div>
+
+              {/* Decoded Plaintext Memo */}
+              <div className="space-y-1">
+                <div className="text-slate-400 text-[11px] flex items-center justify-between">
+                  <span>Decoded UTF-8 Memo String (Payload)</span>
                   <button
                     onClick={() => copyToClipboard(memoString, 'memo')}
                     className="text-emerald-400 hover:underline flex items-center gap-1 text-[11px] cursor-pointer"
@@ -376,18 +396,9 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
                     {copiedField === 'memo' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                     {copiedField === 'memo' ? 'Copied' : 'Copy'}
                   </button>
-                </label>
-                <div className="p-2.5 rounded-xl bg-cloak-950 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-between">
-                  <span>{memoString}</span>
-                  <span className="text-[10px] text-slate-500 font-normal">512-byte max</span>
                 </div>
-              </div>
-
-              {/* Exact Amount */}
-              <div className="space-y-1">
-                <label className="text-slate-400 text-[11px]">Exact Amount (ZEC)</label>
-                <div className="p-2.5 rounded-xl bg-cloak-950 border border-white/10 text-slate-200 text-xs font-bold">
-                  {amountZEC} ZEC
+                <div className="p-2 rounded-lg bg-cloak-950 border border-white/10 text-slate-300 text-xs">
+                  {memoString}
                 </div>
               </div>
             </div>
@@ -395,13 +406,13 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
 
           {/* TAB 3: Compatible Wallets */}
           {tab === 'wallets' && (
-            <div className="space-y-2.5 text-xs">
+            <div className="space-y-2.5 text-xs font-sans">
               <div className="p-3 rounded-xl bg-cloak-950 border border-white/10 flex items-center justify-between">
                 <div>
-                  <h4 className="font-semibold text-white">Zashi (Electric Coin Co.)</h4>
-                  <p className="text-[11px] text-slate-400">Official iOS & Android shielded wallet with ZIP-321 support.</p>
+                  <h4 className="font-semibold text-white">Zashi</h4>
+                  <p className="text-xs text-slate-400">Official Electric Coin Co. shielded wallet with ZIP-321 QR parsing.</p>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-mono">
                   Recommended
                 </span>
               </div>
@@ -409,64 +420,63 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
               <div className="p-3 rounded-xl bg-cloak-950 border border-white/10 flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-white">YWallet</h4>
-                  <p className="text-[11px] text-slate-400">High-performance desktop & mobile wallet with ultra-fast sync.</p>
+                  <p className="text-xs text-slate-400">Desktop & mobile wallet supporting fast sync and shielded memo notes.</p>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-white/10 text-slate-300 text-[10px] font-mono">
-                  Desktop & Mobile
+                <span className="px-2 py-0.5 rounded bg-white/5 text-slate-300 text-[10px] font-mono">
+                  Desktop / Mobile
                 </span>
               </div>
 
               <div className="p-3 rounded-xl bg-cloak-950 border border-white/10 flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-white">Zingo! & Nighthawk</h4>
-                  <p className="text-[11px] text-slate-400">Full Orchard support, auto-shielding, and instant QR camera recognition.</p>
+                  <p className="text-xs text-slate-400">Mobile wallets supporting Unified Addresses and Orchard receiver pools.</p>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-white/10 text-slate-300 text-[10px] font-mono">
-                  Supported
+                <span className="px-2 py-0.5 rounded bg-white/5 text-slate-300 text-[10px] font-mono">
+                  Mobile
                 </span>
               </div>
             </div>
           )}
 
-          {/* Live Status Tracker & Countdown */}
+          {/* Live Status Tracker: Payment requested -> Waiting for payment -> Payment detected -> Access granted */}
           <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs">
-            {/* Status indicator */}
             <div className="flex items-center gap-2">
               {paymentStatus === 'waiting' && (
                 <>
-                  <span className="relative flex h-2.5 w-2.5">
+                  <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                   </span>
                   <span className="text-slate-300 font-mono text-[11px]">
-                    Waiting for shielded mempool broadcast...
+                    Status: <strong>Waiting for payment</strong>
                   </span>
                 </>
               )}
 
-              {paymentStatus === 'broadcasting' && (
+              {paymentStatus === 'detected' && (
                 <>
-                  <Radio className="w-4 h-4 text-amber-400 animate-pulse" />
-                  <span className="text-amber-400 font-mono text-[11px] font-semibold">
-                    Shielded transaction broadcast detected...
+                  <Radio className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                  <span className="text-amber-300 font-mono text-[11px] font-medium">
+                    Status: <strong>Payment detected</strong> (scanning IVK...)
                   </span>
                 </>
               )}
 
               {paymentStatus === 'verifying' && (
                 <>
-                  <Radio className="w-4 h-4 text-emerald-400 animate-spin" />
-                  <span className="text-emerald-300 font-mono text-[11px] font-semibold">
-                    Decrypting memo with IVK (Halo 2 Proofs)...
+                  <Radio className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
+                  <span className="text-emerald-300 font-mono text-[11px] font-medium">
+                    Status: <strong>Verifying session memo...</strong>
                   </span>
                 </>
               )}
 
-              {paymentStatus === 'confirmed' && (
+              {paymentStatus === 'granted' && (
                 <>
-                  <Check className="w-4 h-4 text-emerald-400" />
-                  <span className="text-emerald-400 font-mono text-[11px] font-semibold">
-                    Payment Verified! Unlocking Stream...
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="text-emerald-400 font-mono text-[11px] font-medium">
+                    Status: <strong>Access granted</strong> (Unlocking stream)
                   </span>
                 </>
               )}
@@ -475,39 +485,39 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
             {/* Countdown timer */}
             <div className="flex items-center gap-1.5 font-mono text-slate-400 text-[11px]">
               <Clock className="w-3.5 h-3.5 text-slate-500" />
-              <span>Expires in {formatTime(timeLeft)}</span>
+              <span>Expires: {formatTime(timeLeft)}</span>
             </div>
           </div>
 
-          {/* Testing / Simulator Action Button */}
-          <div className="pt-2">
+          {/* Testing / Simulator Action Button - Honestly Labeled */}
+          <div className="pt-1">
             <button
               onClick={handleSimulatePayment}
               disabled={paymentStatus !== 'waiting'}
-              className="w-full py-3.5 px-4 rounded-xl font-bold text-xs tracking-wide uppercase transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:cursor-not-allowed bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-cloak-950 shadow-emerald-500/20 active:scale-[0.99] disabled:opacity-50"
+              className="w-full py-3.5 px-4 rounded-xl font-medium text-xs tracking-wide uppercase transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:cursor-not-allowed bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-cloak-950 shadow-emerald-500/20 active:scale-[0.99] disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
             >
               {paymentStatus === 'waiting' && (
                 <>
                   <Zap className="w-4 h-4 fill-cloak-950" />
-                  <span>Simulate Payment Success (Demo Fast-Unlock)</span>
+                  <span>Simulate Payment Success (Demo — no real payment is made)</span>
                 </>
               )}
 
-              {paymentStatus === 'broadcasting' && (
-                <span>Broadcasting to Zcash Orchard Mempool...</span>
+              {paymentStatus === 'detected' && (
+                <span>Simulating payment detection...</span>
               )}
 
               {paymentStatus === 'verifying' && (
-                <span>Validating Shielded Halo 2 ZK Proof...</span>
+                <span>Simulating IVK memo verification...</span>
               )}
 
-              {paymentStatus === 'confirmed' && (
-                <span>Success! Decrypting Session Note...</span>
+              {paymentStatus === 'granted' && (
+                <span>Access Granted</span>
               )}
             </button>
 
-            <p className="text-[10px] text-center text-slate-500 mt-2 font-mono">
-              In production, CloakPay listens to the local <code className="text-slate-400">zcashd</code> node via gRPC/lightwalletd.
+            <p className="text-[10px] text-center text-slate-400 mt-2 font-mono">
+              In production, an Incoming Viewing Key (IVK) scans the provider's node for matching notes.
             </p>
           </div>
 

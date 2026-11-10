@@ -11,22 +11,20 @@ import {
   Copy, 
   Check, 
   Code2, 
-  Cpu, 
   RotateCcw,
   KeyRound,
   EyeOff,
   Radio,
-  FileCode,
-  Shield,
   FastForward,
-  ExternalLink,
-  Search
+  Search,
+  AlertCircle
 } from 'lucide-react';
+import { encodeZip321Memo, buildZip321Uri } from '../utils/zip321';
 
 const PRESET_PROMPTS = [
   {
     id: 'swiss-zk',
-    title: 'Swiss ZK Patent Assignment',
+    title: 'Swiss ZK Patent Clause',
     category: 'Legal / IP',
     query: 'Draft a zero-knowledge cryptographic circuit patent assignment clause under Swiss private international law with no US nexus.',
     previewText: `CONFIDENTIAL MEMORANDUM & ARBITRATION SPECIFICATION
@@ -45,11 +43,11 @@ Royalty distributions shall execute unconditionally via HTTP 402 endpoints utili
 Any controversy, claim, or breach arising from this Circuit Assignment shall be settled exclusively by arbitration administered by the Swiss Arbitration Centre under the Swiss Rules of International Arbitration, seated in Zurich, Switzerland. The proceedings shall be conducted in English, with evidentiary zero-knowledge proofs submitted as self-authenticating cryptographic exhibits.
 
 5. NON-DISCLOSURE OF VIEWING KEYS:
-Full incoming viewing keys (FVK) remain solely within the hardware enclave of the Sovereign Trust. No third-party auditor may subpoena secret viewing keys without formal letters rogatory conforming to the Hague Evidence Convention.`
+Full incoming viewing keys (IVK) remain solely within the hardware enclave of the Sovereign Trust. No third-party auditor may subpoena secret viewing keys without formal letters rogatory conforming to the Hague Evidence Convention.`
   },
   {
     id: 'smart-contract-audit',
-    title: 'Autonomous AI Memo Audit',
+    title: 'AI Payment Agent Audit',
     category: 'Cybersecurity',
     query: 'Adversarial audit of an autonomous AI payment agent for transaction memo replay and timing correlation attacks.',
     previewText: `OFFENSIVE SECURITY REPORT: SEC-ZEC-402-AI
@@ -70,8 +68,8 @@ Transaction output amounts must adhere strictly to quantized buckets (e.g., exac
   },
   {
     id: 'decentralized-media',
-    title: 'P2P Micro-Royalty Stream',
-    category: 'Decentralized Media',
+    title: 'Micro-Royalty Stream',
+    category: 'Decentralized API',
     query: 'Structured cross-border micro-royalty agreement for decentralized media streaming with shielded micropayments.',
     previewText: `STREAMING ARCHITECTURE SPECIFICATION: RFC-MEDIA-SHIELD
 Protocol: HTTP 402 Pay-Per-Chunk (Byte-Range 206 Protected Gateways)
@@ -101,6 +99,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
   const [copiedResponse, setCopiedResponse] = useState(false);
   const [copiedMemo, setCopiedMemo] = useState(false);
   const [copiedHex, setCopiedHex] = useState(false);
+  const [copiedZipUri, setCopiedZipUri] = useState(false);
 
   // Typewriter streaming state for confidential unlocked text
   const [displayedWordsCount, setDisplayedWordsCount] = useState(0);
@@ -111,7 +110,6 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
   const successBannerRef = useRef(null);
   const streamingContainerRef = useRef(null);
 
-  // Split the locked text into words for realistic streaming
   const lockedWords = selectedPrompt.lockedText.split(' ');
 
   // GSAP animation on component mount
@@ -119,30 +117,26 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
     const ctx = gsap.context(() => {
       gsap.fromTo(
         terminalRef.current,
-        { opacity: 0, y: 35 },
-        { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }
       );
     }, terminalRef);
     return () => ctx.revert();
   }, []);
 
   // When unlock state transitions to true:
-  // 1. Animate out the paywall barrier card
-  // 2. Animate in the success notification banner
-  // 3. Trigger typewriter streaming effect
   useEffect(() => {
     if (isUnlocked) {
-      // Animate out paywall card if present
       if (paywallCardRef.current) {
         gsap.to(paywallCardRef.current, {
           opacity: 0,
-          scale: 0.95,
+          scale: 0.96,
           height: 0,
           paddingTop: 0,
           paddingBottom: 0,
           marginTop: 0,
           marginBottom: 0,
-          duration: 0.45,
+          duration: 0.4,
           ease: 'power2.inOut',
           onComplete: () => {
             setHasTriggeredPaywall(false);
@@ -150,16 +144,14 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
         });
       }
 
-      // Animate in success banner with glowing bounce
       if (successBannerRef.current) {
         gsap.fromTo(
           successBannerRef.current,
-          { opacity: 0, y: -15, scale: 0.96 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.4)', delay: 0.1 }
+          { opacity: 0, y: -10, scale: 0.98 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.3)', delay: 0.1 }
         );
       }
 
-      // Start Typewriter word-by-word streaming effect
       setDisplayedWordsCount(0);
       setIsStreamingText(true);
     } else {
@@ -174,9 +166,8 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
 
     if (displayedWordsCount < lockedWords.length) {
       const timeout = setTimeout(() => {
-        // Stream 1 to 2 words per tick for natural LLM streaming cadence
         setDisplayedWordsCount((prev) => Math.min(prev + 1, lockedWords.length));
-      }, 30);
+      }, 28);
       return () => clearTimeout(timeout);
     } else {
       setIsStreamingText(false);
@@ -187,7 +178,6 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
     setSelectedPrompt(preset);
     setInputQuery(preset.query);
     if (isUnlocked) {
-      // Re-trigger streaming for new prompt if unlocked
       setDisplayedWordsCount(0);
       setIsStreamingText(true);
     }
@@ -199,7 +189,6 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
 
     setIsGenerating(true);
 
-    // Simulate AI generation delay before encountering paywall
     setTimeout(() => {
       setIsGenerating(false);
       if (!isUnlocked) {
@@ -227,49 +216,55 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
     setTimeout(() => setCopiedResponse(false), 2000);
   };
 
-  // Generate deterministic mock 512-byte hex for the current session for Judge inspection
+  // ZIP-321 Spec details
   const effectiveSessionId = unlockedSessionId || 'sess_9e14a8f9c';
-  const plaintextMemo = `CloakPay:${effectiveSessionId}|amt=0.005|nonce=0x7b84f3e2|exp=1731238500|scope=inference:full`;
-  
-  // Format simulated 512-byte hex ciphertext (1024 hex chars)
+  const plaintextMemo = `CloakPay:${effectiveSessionId}|amt=0.005|nonce=0x7b84f3e2|scope=api:inference`;
+  const base64urlMemo = encodeZip321Memo(plaintextMemo);
+  const sampleRecipientAddress = 'u1m6f94r727tt69g2sqg0x7x3a5h4g2k7w90mclp49q8vj9e450nsl8270xvw3v8w6n72u03h8xrqsqq48dyp';
+  const fullZip321Uri = buildZip321Uri({
+    address: sampleRecipientAddress,
+    amount: '0.005',
+    memo: plaintextMemo
+  });
+
   const simulatedHexCiphertext = `0xf4b72805966910b98134d399${effectiveSessionId.split('').map(c => c.charCodeAt(0).toString(16)).join('')}0000000000000000000000000000000000000000000000000000000000000000` +
     `c4e79b12a830df93847291a84f30193850284710293847192837491827364819` +
     `8374918273648192837491827364819283749182736481928374918273648192` +
-    `8374918273648192837491827364819283749182736481928374918273648192` +
-    `[512 BYTES CHACHA20-POLY1305 ENCRYPTED PAYLOAD VIA ORCHARD SHIELDED NOTE]`;
+    `[512 BYTES CHACHA20-POLY1305 ENCRYPTED CIPHERTEXT (ORCHARD SHIELDED NOTE)]`;
+
+  // Status mapping: 'Payment requested' -> 'Waiting for payment' -> 'Payment detected' -> 'Access granted'
+  const currentDemoStatus = isUnlocked 
+    ? (isStreamingText ? 'Payment detected — Streaming response' : 'Access granted')
+    : 'Payment requested';
 
   return (
-    <section id="demo" className="py-20 relative">
-      {/* Decorative ambient background */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[550px] bg-emerald-500/5 blur-[160px] pointer-events-none rounded-full" />
-
+    <section id="demo" className="py-16 md:py-20 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-medium mb-3">
+        <div className="text-center max-w-3xl mx-auto mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-3">
             <Terminal className="w-3.5 h-3.5" />
-            <span>INTERACTIVE SIMULATOR</span>
+            <span>Interactive Simulator</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-display">
-            Live AI Paywall Demonstration
+          <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-[-0.025em] font-display">
+            Test a paid API request in real time
           </h2>
-          <p className="mt-3 text-slate-300 text-sm sm:text-base">
-            Test how CloakPay intercepts an uncensored AI query with an instant <strong className="text-emerald-400">HTTP 402 Payment Required</strong> barrier, verified by shielded Zcash memos in sub-second mempool broadcasts.
+          <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans max-w-2xl mx-auto">
+            Experience how CloakPay gates an API endpoint with an HTTP 402 challenge, generates a spec-compliant ZIP-321 payment request, and unlocks the response upon verification.
           </p>
         </div>
 
         {/* Preset Query Badges */}
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-2.5">
-          <span className="text-xs font-mono text-slate-400 flex items-center gap-1 mr-1">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            Sample Inquiries:
+        <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+          <span className="text-xs text-slate-400 font-sans mr-1">
+            Sample requests:
           </span>
           {PRESET_PROMPTS.map((preset) => (
             <button
               key={preset.id}
               onClick={() => handleSelectPreset(preset)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                 selectedPrompt.id === preset.id
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
                   : 'bg-cloak-900/80 text-slate-300 hover:text-white border border-white/10 hover:border-white/20'
@@ -286,49 +281,54 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
         {/* The Main Terminal Interface Container */}
         <div
           ref={terminalRef}
-          className="rounded-3xl bg-cloak-900/90 border border-emerald-500/25 shadow-2xl shadow-emerald-950/40 overflow-hidden backdrop-blur-xl"
+          className="rounded-2xl bg-cloak-900/95 border border-white/10 shadow-2xl overflow-hidden backdrop-blur-xl"
         >
           {/* Top Bar of the Terminal */}
-          <div className="px-5 py-4 bg-cloak-850/80 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
+          <div className="px-5 py-3.5 bg-cloak-850/80 border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
             
             {/* Left title & status */}
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
               </div>
               <div className="h-4 w-px bg-white/10 ml-1" />
               <div className="flex items-center gap-2">
                 <Bot className="w-4 h-4 text-emerald-400" />
-                <span className="font-semibold text-white text-sm">
-                  Aethelgard AI
+                <span className="font-semibold text-white text-sm font-sans">
+                  Demo API Endpoint
                 </span>
                 <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">
-                  • Sovereign Confidential Node #824
+                  • POST /v1/legal/synthesize
                 </span>
               </div>
             </div>
 
-            {/* Right mode tabs & controls */}
+            {/* Right mode tabs & Simulation Badge */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Tab Switcher: Chat View vs Decoded Memo Inspector vs HTTP Wire Inspector */}
+              {/* Simulation Notice Badge */}
+              <span className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[11px] font-mono">
+                Simulation — no real payment is made
+              </span>
+
+              {/* Tab Switcher */}
               <div className="flex rounded-lg bg-cloak-950 p-0.5 border border-white/10 text-xs">
                 <button
                   onClick={() => setViewMode('assistant')}
-                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                     viewMode === 'assistant'
                       ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   <Bot className="w-3.5 h-3.5" />
-                  Assistant
+                  Request & Output
                 </button>
 
                 <button
                   onClick={() => setViewMode('memo-inspector')}
-                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer relative ${
+                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                     viewMode === 'memo-inspector'
                       ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
                       : 'text-slate-400 hover:text-white'
@@ -336,14 +336,14 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                 >
                   <KeyRound className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Decoded Memo</span>
-                  <span className="text-[9px] font-mono bg-emerald-500/30 text-emerald-300 px-1 py-0.2 rounded font-bold uppercase tracking-wider">
+                  <span className="text-[9px] font-mono bg-emerald-500/25 text-emerald-300 px-1 py-0.2 rounded font-medium">
                     Judges
                   </span>
                 </button>
 
                 <button
                   onClick={() => setViewMode('inspector')}
-                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                     viewMode === 'inspector'
                       ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
                       : 'text-slate-400 hover:text-white'
@@ -354,27 +354,17 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                 </button>
               </div>
 
-              {/* Status Badge */}
+              {/* Obvious State Badge: Payment requested -> Waiting for payment -> Payment detected -> Access granted */}
               <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono border">
                 {isUnlocked ? (
-                  isStreamingText ? (
-                    <span className="flex items-center gap-1.5 text-emerald-400 border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                      <span className="flex h-2 w-2 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                      </span>
-                      STREAMING RESPONSE...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1.5 text-emerald-400 border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                      <Unlock className="w-3 h-3" />
-                      SESSION ACTIVE (200 OK)
-                    </span>
-                  )
+                  <span className="flex items-center gap-1.5 text-emerald-400 border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                    <Unlock className="w-3 h-3" />
+                    {currentDemoStatus}
+                  </span>
                 ) : (
                   <span className="flex items-center gap-1.5 text-amber-400 border-amber-500/30 bg-amber-500/10 px-2 py-0.5 rounded-full">
                     <Lock className="w-3 h-3" />
-                    PAYWALL ENFORCED (402)
+                    Status: {currentDemoStatus}
                   </span>
                 )}
               </div>
@@ -385,7 +375,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
           {isUnlocked && (
             <div 
               ref={successBannerRef}
-              className="px-6 py-3.5 bg-gradient-to-r from-emerald-950/70 via-emerald-900/30 to-cloak-900 border-b border-emerald-500/30 flex flex-wrap items-center justify-between gap-3"
+              className="px-6 py-3.5 bg-emerald-950/40 border-b border-emerald-500/25 flex flex-wrap items-center justify-between gap-3"
             >
               <div className="flex items-center gap-3">
                 <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
@@ -393,19 +383,17 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-emerald-300 font-sans">
-                      Shielded Zcash Orchard TX Verified — Session Active
+                    <span className="text-xs sm:text-sm font-semibold text-emerald-300 font-sans">
+                      Payment Detected & Verified — Access Granted
                     </span>
                     <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded font-mono">
-                      Halo 2 Proof OK
+                      IVK Note Match
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-400 font-mono flex items-center gap-2 mt-0.5">
-                    <span>Memo: <code className="text-emerald-300 font-bold">CloakPay:{effectiveSessionId}</code></span>
+                  <div className="text-[11px] text-slate-400 font-sans flex items-center gap-2 mt-0.5">
+                    <span>Session: <code className="text-emerald-300 font-mono font-medium">{effectiveSessionId}</code></span>
                     <span>•</span>
-                    <span>Decrypted in 780ms (Mempool IVK)</span>
-                    <span>•</span>
-                    <span className="text-emerald-400">0 bytes identity leaked</span>
+                    <span>Incoming Viewing Key (IVK) memo decryption</span>
                   </div>
                 </div>
               </div>
@@ -413,10 +401,10 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
               {/* Action button to jump to memo inspector */}
               <button
                 onClick={() => setViewMode('memo-inspector')}
-                className="px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-medium flex items-center gap-1.5 transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
               >
                 <Search className="w-3.5 h-3.5" />
-                Inspect 512-Byte Decoded Memo
+                Inspect Decoded 512-Byte Memo
               </button>
             </div>
           )}
@@ -424,30 +412,30 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
           {/* Terminal Body Content */}
           <div className="p-6">
             
-            {/* VIEW MODE 1: ASSISTANT CHAT */}
+            {/* VIEW MODE 1: ASSISTANT CHAT / API DEMO */}
             {viewMode === 'assistant' && (
               <div className="space-y-6">
                 
                 {/* User Prompt Bubble */}
                 <div className="flex items-start gap-3 max-w-3xl">
                   <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-mono font-bold text-slate-300">YOU</span>
+                    <span className="text-xs font-mono font-bold text-slate-300">REQ</span>
                   </div>
-                  <div className="p-4 rounded-2xl bg-cloak-850 border border-white/10 text-slate-200 text-sm leading-relaxed">
+                  <div className="p-4 rounded-xl bg-cloak-850 border border-white/10 text-slate-200 text-sm leading-relaxed font-sans">
                     {inputQuery}
                   </div>
                 </div>
 
                 {/* AI Response Bubble */}
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500/30 to-teal-900/50 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/10">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
                     <Bot className="w-4 h-4 text-emerald-400" />
                   </div>
 
                   <div className="flex-1 overflow-hidden space-y-4">
                     
                     {/* Unlocked Preview Section (Visible to everyone) */}
-                    <div className="p-5 rounded-2xl bg-cloak-950/70 border border-white/5 font-mono text-xs sm:text-[13px] text-slate-300 leading-relaxed whitespace-pre-wrap select-text">
+                    <div className="p-5 rounded-xl bg-cloak-950/80 border border-white/5 font-mono text-xs sm:text-[13px] text-slate-300 leading-relaxed whitespace-pre-wrap select-text">
                       {selectedPrompt.previewText}
                     </div>
 
@@ -455,61 +443,49 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                     {!isUnlocked ? (
                       <div
                         ref={paywallCardRef}
-                        className="relative p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-cloak-850/90 to-cloak-950 border-2 border-emerald-500/40 shadow-2xl shadow-emerald-950/60 overflow-hidden text-center"
+                        className="relative p-6 sm:p-8 rounded-xl bg-cloak-850/90 border border-emerald-500/30 overflow-hidden text-center"
                       >
-                        {/* Glowing backdrop halo */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-44 bg-emerald-500/15 blur-3xl pointer-events-none rounded-full" />
-                        
-                        {/* Blur overlay previewing hidden text */}
-                        <div className="absolute inset-0 backdrop-blur-md bg-cloak-950/60 pointer-events-none" />
-
                         {/* Interactive Paywall Trigger Card */}
                         <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center">
-                          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/20 mb-3 animate-bounce">
-                            <Lock className="w-6 h-6" />
+                          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-3">
+                            <Lock className="w-5 h-5" />
                           </div>
 
                           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-[11px] font-mono font-semibold mb-2">
-                            <span>HTTP/1.1 402 PAYMENT REQUIRED</span>
+                            <span>HTTP 402 PAYMENT REQUIRED</span>
                           </div>
 
-                          <h3 className="text-xl font-bold text-white tracking-tight">
-                            Unlock Full Uncensored Output
+                          <h3 className="text-lg font-semibold text-white tracking-[-0.025em] font-display">
+                            Pay per request with shielded Zcash
                           </h3>
 
-                          <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
-                            This high-value intelligence stream is protected by <strong className="text-emerald-400">CloakPay</strong>.
-                            Send a shielded micro-payment via Zcash to unlock immediate zero-latency streaming.
+                          <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+                            This API endpoint requires a micropayment of 0.005 ZEC (~$0.18). Pay from any Zcash wallet using a ZIP-321 payment request.
                           </p>
 
-                          <div className="mt-4 p-3 rounded-xl bg-cloak-900 border border-white/10 w-full flex items-center justify-between text-xs font-mono">
+                          <div className="mt-4 p-3 rounded-lg bg-cloak-900 border border-white/10 w-full flex items-center justify-between text-xs font-mono">
                             <div className="text-left">
-                              <span className="text-[10px] text-slate-500 uppercase block">Required Micro-Charge</span>
-                              <span className="font-bold text-emerald-400 text-sm">0.005 ZEC</span>
+                              <span className="text-[10px] text-slate-400 uppercase block">Required Amount</span>
+                              <span className="font-semibold text-emerald-400 text-sm">0.005 ZEC</span>
                               <span className="text-slate-400 text-[11px] ml-1">(~$0.18)</span>
                             </div>
                             <div className="text-right">
-                              <span className="text-[10px] text-slate-500 uppercase block">Verification Protocol</span>
-                              <span className="text-slate-300 font-semibold text-xs">Shielded Memo (ZIP-321)</span>
+                              <span className="text-[10px] text-slate-400 uppercase block">Encoding</span>
+                              <span className="text-slate-300 text-xs">ZIP-321 Base64url Memo</span>
                             </div>
                           </div>
 
                           <button
                             onClick={() => onTriggerPaywall(selectedPrompt.query)}
-                            className="mt-5 w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm tracking-wide text-cloak-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 hover:from-emerald-300 hover:to-teal-200 transition-all shadow-xl shadow-emerald-500/25 active:scale-95 flex items-center justify-center gap-2 cursor-pointer group"
+                            className="mt-5 w-full py-3 px-6 rounded-xl font-medium text-xs sm:text-sm text-cloak-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                           >
-                            <Unlock className="w-4 h-4 transition-transform group-hover:-rotate-12" />
+                            <Unlock className="w-4 h-4" />
                             <span>Unlock with Shielded Zcash (0.005 ZEC)</span>
                           </button>
 
-                          <div className="mt-3 flex items-center gap-4 text-[11px] text-slate-400 font-mono">
-                            <span className="flex items-center gap-1">
-                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                              Zero Cookies / No Account
-                            </span>
-                            <span>•</span>
-                            <span>100% Shielded Mempool</span>
-                          </div>
+                          <p className="mt-3 text-[11px] text-slate-400 font-sans">
+                            Simulation mode: you can test the instant unlock without sending real ZEC.
+                          </p>
                         </div>
 
                       </div>
@@ -517,13 +493,13 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                       /* Unlocked Document Section (Typewriter word-by-word streaming) */
                       <div 
                         ref={streamingContainerRef}
-                        className="p-5 rounded-2xl bg-gradient-to-br from-cloak-950 to-emerald-950/20 border border-emerald-500/30 font-mono text-xs sm:text-[13px] text-emerald-200 leading-relaxed select-text relative group transition-all"
+                        className="p-5 rounded-xl bg-cloak-950 border border-emerald-500/25 font-mono text-xs sm:text-[13px] text-slate-200 leading-relaxed select-text relative"
                       >
                         {/* Header badge inside unlocked text */}
                         <div className="flex flex-wrap items-center justify-between pb-3 mb-3 border-b border-emerald-500/20 text-[11px] text-emerald-400 gap-2">
-                          <span className="flex items-center gap-1.5 font-bold">
+                          <span className="flex items-center gap-1.5 font-medium">
                             <Unlock className="w-3.5 h-3.5" />
-                            <span>CONFIDENTIAL UNLOCKED STREAM</span>
+                            <span>API RESPONSE STREAM UNLOCKED</span>
                             <span className="text-slate-400 font-normal">
                               (Token: {effectiveSessionId})
                             </span>
@@ -546,7 +522,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                               className="flex items-center gap-1 text-slate-400 hover:text-white transition-colors cursor-pointer text-xs"
                             >
                               {copiedResponse ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                              {copiedResponse ? 'Copied' : 'Copy'}
+                              {copiedResponse ? 'Copied' : 'Copy output'}
                             </button>
                           </div>
                         </div>
@@ -555,25 +531,25 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                         <div className="whitespace-pre-wrap leading-relaxed text-slate-200">
                           {lockedWords.slice(0, displayedWordsCount).join(' ')}
                           {isStreamingText && (
-                            <span className="inline-block w-2 h-4 bg-emerald-400 ml-1 animate-pulse align-middle" />
+                            <span className="inline-block w-1.5 h-4 bg-emerald-400 ml-1 animate-pulse align-middle" />
                           )}
                         </div>
 
                         {/* Stream status footer */}
-                        <div className="mt-4 pt-3 border-t border-emerald-500/20 flex flex-wrap items-center justify-between text-[11px] text-emerald-400/80 gap-2 font-mono">
+                        <div className="mt-4 pt-3 border-t border-emerald-500/20 flex flex-wrap items-center justify-between text-[11px] text-slate-400 gap-2 font-sans">
                           <div className="flex items-center gap-2">
                             {isStreamingText ? (
-                              <span className="flex items-center gap-1 text-amber-300">
+                              <span className="flex items-center gap-1 text-amber-300 font-mono">
                                 <Radio className="w-3 h-3 animate-pulse" />
-                                Streaming protected payload chunks...
+                                Streaming response payload...
                               </span>
                             ) : (
-                              <span className="text-emerald-400">
-                                ✓ Stream Complete • Attested by halo2_orchard::Verify
+                              <span className="text-emerald-400 font-mono">
+                                ✓ Stream Complete • Verified via Incoming Viewing Key note detection
                               </span>
                             )}
                           </div>
-                          <span>Mempool Latency: 780ms</span>
+                          <span className="text-slate-400 text-[11px]">HTTP 200 OK</span>
                         </div>
                       </div>
                     )}
@@ -589,20 +565,20 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
               <div className="space-y-6 font-mono text-xs">
                 
                 {/* Intro notice for judges */}
-                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-cloak-900 border border-emerald-500/30 flex items-start gap-3">
-                  <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
-                    <KeyRound className="w-5 h-5" />
+                <div className="p-4 rounded-xl bg-cloak-850 border border-white/10 flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-emerald-500/15 text-emerald-400 shrink-0">
+                    <KeyRound className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white font-sans flex items-center gap-2">
-                      <span>Judge Inspection: 512-Byte Encrypted Zcash Memo Verification</span>
+                    <h3 className="text-sm font-semibold text-white font-display flex items-center gap-2">
+                      <span>ZIP-321 Base64url Memo & Incoming Viewing Key (IVK) Verification</span>
                       <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono">
-                        RFC 9110 + ZIP-321
+                        Spec Compliant
                       </span>
-                    </h4>
+                    </h3>
                     <p className="text-xs text-slate-300 mt-1 leading-relaxed font-sans">
-                      This inspector reveals what traveled across the peer-to-peer network versus what the recipient decrypted. 
-                      Notice how the <strong>session token</strong> cryptographically authenticates the HTTP stream without exposing the sender’s wallet address, IP, or balance history.
+                      Under ZIP-321, payment request URIs require the <code className="text-emerald-300">memo=</code> parameter to be Base64url-encoded without padding. 
+                      The API provider uses an <strong>Incoming Viewing Key (IVK)</strong>—the least-privileged viewing key—to detect the transaction and decrypt the memo without holding any spending authority.
                     </p>
                   </div>
                 </div>
@@ -611,81 +587,81 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   
                   {/* Left: What Public Blockchain Observers See */}
-                  <div className="p-4 rounded-2xl bg-cloak-950 border border-white/10 space-y-3">
+                  <div className="p-4 rounded-xl bg-cloak-950 border border-white/10 space-y-3">
                     <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                      <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <EyeOff className="w-3.5 h-3.5" />
-                        1. Public Ledger (Blockchain Observers)
+                      <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 font-sans">
+                        <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+                        1. Public Blockchain Observers See
                       </span>
-                      <span className="text-[10px] text-slate-500 font-mono">Orchard Circuit</span>
+                      <span className="text-[10px] text-slate-400 font-mono">Orchard Shielded</span>
                     </div>
 
                     <div className="space-y-2 text-[11px]">
                       <div className="flex justify-between py-1 border-b border-white/5">
                         <span className="text-slate-400">Sender Address:</span>
-                        <span className="text-red-400 font-bold">[CONCEALED VIA HALO 2]</span>
+                        <span className="text-emerald-400 font-medium">Concealed (Orchard pool)</span>
                       </div>
                       <div className="flex justify-between py-1 border-b border-white/5">
                         <span className="text-slate-400">Recipient Address:</span>
-                        <span className="text-red-400 font-bold">[CONCEALED NOTE COMMITMENT]</span>
+                        <span className="text-emerald-400 font-medium">Concealed (Note commitment)</span>
                       </div>
                       <div className="flex justify-between py-1 border-b border-white/5">
                         <span className="text-slate-400">Transaction Value:</span>
-                        <span className="text-red-400 font-bold">[CONCEALED PEDERSEN VALUE]</span>
+                        <span className="text-emerald-400 font-medium">Concealed (Pedersen commitment)</span>
                       </div>
                       <div className="flex justify-between py-1 border-b border-white/5">
-                        <span className="text-slate-400">Ciphertext Algorithm:</span>
-                        <span className="text-slate-300">ChaCha20-Poly1305 (AEAD)</span>
+                        <span className="text-slate-400">Payload Encryption:</span>
+                        <span className="text-slate-300">ChaCha20-Poly1305 (512-byte memo)</span>
                       </div>
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                        <span>Raw 512-Byte Ciphertext:</span>
+                        <span>ZIP-321 Base64url Memo Parameter:</span>
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(simulatedHexCiphertext);
-                            setCopiedHex(true);
-                            setTimeout(() => setCopiedHex(false), 2000);
+                            navigator.clipboard.writeText(base64urlMemo);
+                            setCopiedZipUri(true);
+                            setTimeout(() => setCopiedZipUri(false), 2000);
                           }}
                           className="text-emerald-400 hover:underline cursor-pointer flex items-center gap-1 text-[10px]"
                         >
-                          {copiedHex ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                          {copiedHex ? 'Copied Hex' : 'Copy Hex'}
+                          {copiedZipUri ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          {copiedZipUri ? 'Copied' : 'Copy Base64url'}
                         </button>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-cloak-900 border border-white/5 text-[10px] text-slate-400 break-all leading-normal max-h-24 overflow-y-auto select-all">
-                        {simulatedHexCiphertext}
+                      <div className="p-2 rounded bg-cloak-900 border border-white/5 text-[10px] text-emerald-300 font-mono break-all select-all">
+                        {base64urlMemo}
                       </div>
                     </div>
                   </div>
 
                   {/* Right: What CloakPay Node Decrypts via IVK */}
-                  <div className="p-4 rounded-2xl bg-cloak-950 border border-emerald-500/30 space-y-3">
+                  <div className="p-4 rounded-xl bg-cloak-950 border border-emerald-500/30 space-y-3">
                     <div className="flex items-center justify-between pb-2 border-b border-emerald-500/20">
-                      <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5 font-sans">
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        2. Decrypted by CloakPay (Incoming Viewing Key)
+                        2. API Provider Decrypts via IVK
                       </span>
-                      <span className="text-[10px] text-emerald-300 font-mono">Zero-Leakage</span>
+                      <span className="text-[10px] text-emerald-300 font-mono">Least-Privilege</span>
                     </div>
 
                     <div className="space-y-2 text-[11px]">
                       <div className="flex justify-between py-1 border-b border-white/5">
-                        <span className="text-slate-400">Decryption Key:</span>
-                        <span className="text-emerald-300 font-mono">ivk_orchard_server_priv01</span>
+                        <span className="text-slate-400">Key Type:</span>
+                        <span className="text-emerald-300 font-mono">Incoming Viewing Key (IVK)</span>
                       </div>
                       <div className="flex justify-between py-1 border-b border-white/5">
-                        <span className="text-slate-400">Mempool Scan Speed:</span>
-                        <span className="text-emerald-400 font-bold">~780ms (Sub-second)</span>
+                        <span className="text-slate-400">Spending Authority:</span>
+                        <span className="text-slate-300">None (Cannot spend funds)</span>
                       </div>
                       <div className="flex justify-between py-1 border-b border-white/5">
-                        <span className="text-slate-400">Matched Session Token:</span>
-                        <span className="text-emerald-400 font-bold">{effectiveSessionId}</span>
+                        <span className="text-slate-400">Extracted Session Token:</span>
+                        <span className="text-emerald-400 font-medium">{effectiveSessionId}</span>
                       </div>
                       <div className="flex justify-between py-1 border-b border-white/5">
-                        <span className="text-slate-400">Client IP or Identity:</span>
-                        <span className="text-emerald-400 font-bold">0 BYTES STORED</span>
+                        <span className="text-slate-400">Authentication Result:</span>
+                        <span className="text-emerald-400 font-medium">Binds to HTTP 402 challenge</span>
                       </div>
                     </div>
 
@@ -701,10 +677,10 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                           className="text-emerald-400 hover:underline cursor-pointer flex items-center gap-1 text-[10px]"
                         >
                           {copiedMemo ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                          {copiedMemo ? 'Copied Memo' : 'Copy Memo'}
+                          {copiedMemo ? 'Copied' : 'Copy'}
                         </button>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-cloak-900 border border-emerald-500/30 text-[11px] text-emerald-300 font-bold break-all leading-normal select-all">
+                      <div className="p-2 rounded bg-cloak-900 border border-emerald-500/30 text-[11px] text-emerald-300 font-medium break-all select-all">
                         {plaintextMemo}
                       </div>
                     </div>
@@ -712,45 +688,54 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
 
                 </div>
 
+                {/* Important Technical & Privacy Clarification */}
+                <div className="p-3.5 rounded-xl bg-cloak-900 border border-white/10 text-xs text-slate-300 font-sans flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">
+                    <strong>Technical Clarification for Auditors:</strong> Zcash shielding conceals transaction details (sender, recipient, amount) on the public blockchain. 
+                    It does not automatically hide network-layer metadata (IP address, user-agent, or API prompts) from the server hosting the API endpoint.
+                  </p>
+                </div>
+
                 {/* Structured Payload Breakdown Table */}
-                <div className="p-4 rounded-2xl bg-cloak-950 border border-white/10 space-y-3">
-                  <h5 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                    Parsed 512-Byte Memo Schema (RFC-CLOAKPAY-01)
-                  </h5>
+                <div className="p-4 rounded-xl bg-cloak-950 border border-white/10 space-y-3">
+                  <h4 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-sans">
+                    Structured 512-Byte Memo Schema (RFC-CLOAKPAY-01)
+                  </h4>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-xs">
                       <thead>
                         <tr className="border-b border-white/10 text-slate-400 text-[11px]">
                           <th className="py-2 px-3">Field</th>
-                          <th className="py-2 px-3">Value in Memo</th>
-                          <th className="py-2 px-3">Purpose in Protocol</th>
+                          <th className="py-2 px-3">Value</th>
+                          <th className="py-2 px-3">Purpose</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
                         <tr>
-                          <td className="py-2.5 px-3 text-emerald-400 font-bold">Prefix</td>
-                          <td className="py-2.5 px-3 text-slate-300">CloakPay:</td>
-                          <td className="py-2.5 px-3 text-slate-400">Application namespace filter for incoming viewing keys</td>
+                          <td className="py-2 px-3 text-emerald-400 font-medium">Protocol Prefix</td>
+                          <td className="py-2 px-3 text-slate-300">CloakPay:</td>
+                          <td className="py-2 px-3 text-slate-400">Namespace filter for the provider's IVK scanner</td>
                         </tr>
                         <tr>
-                          <td className="py-2.5 px-3 text-emerald-400 font-bold">Session Hash</td>
-                          <td className="py-2.5 px-3 text-white font-bold">{effectiveSessionId}</td>
-                          <td className="py-2.5 px-3 text-slate-400">Binds transaction to client's ephemeral HTTP 402 challenge</td>
+                          <td className="py-2 px-3 text-emerald-400 font-medium">Session Token</td>
+                          <td className="py-2 px-3 text-white font-medium">{effectiveSessionId}</td>
+                          <td className="py-2 px-3 text-slate-400">Binds transaction to client's specific HTTP request</td>
                         </tr>
                         <tr>
-                          <td className="py-2.5 px-3 text-emerald-400 font-bold">Amount</td>
-                          <td className="py-2.5 px-3 text-slate-300">0.005 ZEC</td>
-                          <td className="py-2.5 px-3 text-slate-400">Exact micro-settlement price per token burst</td>
+                          <td className="py-2 px-3 text-emerald-400 font-medium">Amount</td>
+                          <td className="py-2 px-3 text-slate-300">0.005 ZEC</td>
+                          <td className="py-2 px-3 text-slate-400">Expected payment amount per request</td>
                         </tr>
                         <tr>
-                          <td className="py-2.5 px-3 text-emerald-400 font-bold">Nonce</td>
-                          <td className="py-2.5 px-3 text-slate-300">0x7b84f3e2</td>
-                          <td className="py-2.5 px-3 text-slate-400">Anti-replay defense against mempool frontrunning</td>
+                          <td className="py-2 px-3 text-emerald-400 font-medium">Nonce</td>
+                          <td className="py-2 px-3 text-slate-300">0x7b84f3e2</td>
+                          <td className="py-2 px-3 text-slate-400">Anti-replay defense against memo reuse</td>
                         </tr>
                         <tr>
-                          <td className="py-2.5 px-3 text-emerald-400 font-bold">Scope</td>
-                          <td className="py-2.5 px-3 text-slate-300">inference:full</td>
-                          <td className="py-2.5 px-3 text-slate-400">Grants token permission for high-value unredacted generation</td>
+                          <td className="py-2 px-3 text-emerald-400 font-medium">Scope</td>
+                          <td className="py-2 px-3 text-slate-300">api:inference</td>
+                          <td className="py-2 px-3 text-slate-400">Requested API service access scope</td>
                         </tr>
                       </tbody>
                     </table>
@@ -762,57 +747,52 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
 
             {/* VIEW MODE 3: HTTP 402 WIRE INSPECTOR */}
             {viewMode === 'inspector' && (
-              <div className="p-4 rounded-2xl bg-cloak-950 border border-white/10 font-mono text-xs space-y-4">
+              <div className="p-4 rounded-xl bg-cloak-950 border border-white/10 font-mono text-xs space-y-4">
                 <div>
-                  <div className="text-slate-400 text-[11px] font-bold mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="text-slate-400 text-[11px] font-medium mb-1 uppercase tracking-wider flex items-center gap-1.5 font-sans">
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    Client HTTP Request:
+                    1. Client Initial Request:
                   </div>
-                  <pre className="p-3 rounded-xl bg-cloak-900 border border-white/5 text-slate-300 overflow-x-auto">
-{`POST /api/v1/aethelgard/inference HTTP/1.1
-Host: api.cloakpay.network
-User-Agent: CloakClient/1.0 (Headless; No-Telemetry)
+                  <pre className="p-3 rounded-lg bg-cloak-900 border border-white/5 text-slate-300 overflow-x-auto">
+{`POST /v1/legal/synthesize HTTP/1.1
+Host: api.provider.com
 Content-Type: application/json
 Accept: text/event-stream
 
 {
-  "model": "aethelgard-sovereign-70b",
-  "query": "${inputQuery.substring(0, 50)}...",
-  "stream": true
+  "prompt": "${inputQuery.substring(0, 45)}..."
 }`}
                   </pre>
                 </div>
 
                 <div>
-                  <div className="text-amber-400 text-[11px] font-bold mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="text-amber-300 text-[11px] font-medium mb-1 uppercase tracking-wider flex items-center gap-1.5 font-sans">
                     <span className="w-2 h-2 rounded-full bg-amber-400" />
-                    Server Response (Pre-Payment Intercept):
+                    2. Server Returns HTTP 402 Payment Required:
                   </div>
-                  <pre className="p-3 rounded-xl bg-cloak-900 border border-amber-500/20 text-amber-200/90 overflow-x-auto">
+                  <pre className="p-3 rounded-lg bg-cloak-900 border border-amber-500/20 text-amber-200/90 overflow-x-auto text-[11px]">
 {`HTTP/1.1 402 Payment Required
-Server: CloakPay-Gateway/0.9.4
 Content-Type: application/problem+json
 WWW-Authenticate: CloakPay realm="session_${effectiveSessionId}",
-  zcash_uri="zcash:u1m6f94r...amount=0.005&memo=CloakPay:${effectiveSessionId}",
+  zcash_uri="zcash:${sampleRecipientAddress}?amount=0.005&memo=${base64urlMemo}",
+  memo_base64url="${base64urlMemo}",
   expiry="300"
-X-CloakPay-Status: AwaitingShieldedMempoolNote
-Retry-After: 2`}
+X-CloakPay-Status: PaymentRequested
+Retry-After: 3`}
                   </pre>
                 </div>
 
                 {isUnlocked && (
                   <div>
-                    <div className="text-emerald-400 text-[11px] font-bold mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                    <div className="text-emerald-400 text-[11px] font-medium mb-1 uppercase tracking-wider flex items-center gap-1.5 font-sans">
                       <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                      Post-Payment Mempool Re-Verification:
+                      3. Server Detects Memo via IVK & Returns 200 OK:
                     </div>
-                    <pre className="p-3 rounded-xl bg-cloak-900 border border-emerald-500/30 text-emerald-300 overflow-x-auto">
+                    <pre className="p-3 rounded-lg bg-cloak-900 border border-emerald-500/30 text-emerald-300 overflow-x-auto text-[11px]">
 {`HTTP/1.1 200 OK
-Server: CloakPay-Gateway/0.9.4
 Content-Type: text/event-stream
-X-CloakPay-Settlement: Orchard-Mempool-Verified (Halo 2 Proof)
-X-CloakPay-Memo-Decoded: CloakPay:${effectiveSessionId}
-X-CloakPay-Identity: Concealed (Zero-Knowledge)
+X-CloakPay-Settlement: ShieldedNoteDetected (IVK Match)
+X-CloakPay-Memo: CloakPay:${effectiveSessionId}
 Cache-Control: no-cache, no-store`}
                     </pre>
                   </div>
@@ -827,13 +807,13 @@ Cache-Control: no-cache, no-store`}
                   type="text"
                   value={inputQuery}
                   onChange={(e) => setInputQuery(e.target.value)}
-                  placeholder="Ask any proprietary legal, security, or AI inference question..."
-                  className="w-full pl-4 pr-12 py-3.5 rounded-2xl bg-cloak-950 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-white placeholder-slate-500 font-sans outline-none transition-all"
+                  placeholder="Enter a prompt to test the paid API flow..."
+                  className="w-full pl-4 pr-12 py-3 rounded-xl bg-cloak-950 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-white placeholder-slate-500 font-sans outline-none transition-all focus-visible:ring-2 focus-visible:ring-emerald-400"
                 />
                 <button
                   type="submit"
                   disabled={isGenerating}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition-colors cursor-pointer disabled:opacity-40"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition-colors cursor-pointer disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                   aria-label="Submit Question"
                 >
                   <Send className="w-4 h-4" />
@@ -845,7 +825,7 @@ Cache-Control: no-cache, no-store`}
                   type="button"
                   onClick={handleResetDemo}
                   title="Reset demo session"
-                  className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
