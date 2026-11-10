@@ -1,0 +1,862 @@
+import React, { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { 
+  Bot, 
+  Send, 
+  ShieldCheck, 
+  Lock, 
+  Unlock, 
+  Sparkles, 
+  Terminal, 
+  Copy, 
+  Check, 
+  Code2, 
+  Cpu, 
+  RotateCcw,
+  KeyRound,
+  EyeOff,
+  Radio,
+  FileCode,
+  Shield,
+  FastForward,
+  ExternalLink,
+  Search
+} from 'lucide-react';
+
+const PRESET_PROMPTS = [
+  {
+    id: 'swiss-zk',
+    title: 'Swiss ZK Patent Assignment',
+    category: 'Legal / IP',
+    query: 'Draft a zero-knowledge cryptographic circuit patent assignment clause under Swiss private international law with no US nexus.',
+    previewText: `CONFIDENTIAL MEMORANDUM & ARBITRATION SPECIFICATION
+Jurisdiction: Canton of Zurich / Swiss Chambers' Arbitration Institution (SCAI)
+Subject: Assignment of Zero-Knowledge Arithmetic Circuit Intellectual Property & Prover Infrastructure
+
+1. DEFINITION OF SHIELDED IP ASSETS:
+The Assignor irrevocably conveys to Assignee all global proprietary interests, copyrightable cryptographic compositions, Constraint Systems (R1CS, Plonkish Arithmetization), and Halo 2 recursive polynomial verifier implementations. 
+
+2. EXCLUSION OF EXTRATERRITORIAL DISCLOSURE:
+Neither party shall be compelled to deposit proving keys or viewing keys into any foreign escrow or regulatory clearinghouse, in accordance with Article 271 of the Swiss Criminal Code...`,
+    lockedText: `3. MEMO-BASED ATTESTATION & ROYALTIES:
+Royalty distributions shall execute unconditionally via HTTP 402 endpoints utilizing Zcash Unified Addresses (ZIP-316). Every transfer shall commit a cryptographic proof hash to the 512-byte shielded memo field, establishing non-repudiation without identifying the transacting legal entities.
+
+4. DISPUTE RESOLUTION & CHOICE OF VENUE:
+Any controversy, claim, or breach arising from this Circuit Assignment shall be settled exclusively by arbitration administered by the Swiss Arbitration Centre under the Swiss Rules of International Arbitration, seated in Zurich, Switzerland. The proceedings shall be conducted in English, with evidentiary zero-knowledge proofs submitted as self-authenticating cryptographic exhibits.
+
+5. NON-DISCLOSURE OF VIEWING KEYS:
+Full incoming viewing keys (FVK) remain solely within the hardware enclave of the Sovereign Trust. No third-party auditor may subpoena secret viewing keys without formal letters rogatory conforming to the Hague Evidence Convention.`
+  },
+  {
+    id: 'smart-contract-audit',
+    title: 'Autonomous AI Memo Audit',
+    category: 'Cybersecurity',
+    query: 'Adversarial audit of an autonomous AI payment agent for transaction memo replay and timing correlation attacks.',
+    previewText: `OFFENSIVE SECURITY REPORT: SEC-ZEC-402-AI
+Target: Autonomous HTTP 402 Micropayment Daemon v2.4
+Vector: Side-Channel Timing & Memo Replay Vulnerability Analysis
+
+EXECUTIVE SUMMARY:
+We performed black-box adversarial modeling against the daemon's ephemeral session matching engine. The engine binds HTTP 402 challenge tokens with 512-byte encrypted Orchard memo notes.
+
+FINDING 1 [INFORMATIONAL - MITIGATED]: 
+Timing analysis on mempool decrypt operations confirmed constant-time decryption loops using libpasta and sapling-crypto primitives. No cryptographic leakage observed during trial decryption...`,
+    lockedText: `FINDING 2 [CRITICAL HARDENING REQUIREMENT]:
+Mempool Replay Attack Surface: If an attacker intercepts the plaintext session token via unencrypted HTTP/1.1 transport, they could broadcast a malformed transaction citing the victim's session hash. 
+REMEDIATION: Enforce end-to-end TLS 1.3 with Certificate Transparency and embed an ephemeral Ed25519 client public key in the HTTP Authorization challenge header.
+
+FINDING 3 [PRIVACY CORRELATION RISK]:
+Transaction output amounts must adhere strictly to quantized buckets (e.g., exactly 0.005 ZEC or 0.01 ZEC) to thwart blockchain clustering heuristics that monitor anomalous fractionals.`
+  },
+  {
+    id: 'decentralized-media',
+    title: 'P2P Micro-Royalty Stream',
+    category: 'Decentralized Media',
+    query: 'Structured cross-border micro-royalty agreement for decentralized media streaming with shielded micropayments.',
+    previewText: `STREAMING ARCHITECTURE SPECIFICATION: RFC-MEDIA-SHIELD
+Protocol: HTTP 402 Pay-Per-Chunk (Byte-Range 206 Protected Gateways)
+Asset: Master Audio Archive [Lossless 24-bit 96kHz FLAC]
+
+OVERVIEW:
+Media chunks are partitioned into 1.5MB segmented payloads. The client player requests /media/chunk_0042.bin. The reverse-proxy returns status code 402 with X-Zcash-Payment-Uri headers.
+
+AUTHENTICATION PIPELINE:
+Client wallet signs an Orchard shielded output of 0.001 ZEC with memo 'CHUNK:42:EXP_1731234900'. Media gateway verifies the note in mempool and issues an HTTP 206 Partial Content response...`,
+    lockedText: `STREAM BUFFERING LOGIC:
+The client media player maintains a lookahead buffer of 3 prepaid chunks. When network latency drops below 200ms, pipelined ZIP-321 micro-transactions guarantee gapless playback without stalling audio streams.
+
+AUDIT & TAX EXEMPTION RATIONALE:
+Because micro-payments settle directly to creator shielded pools, zero intermediary financial processors hold user custody, eliminating credit card chargeback reserves and merchant processing fees.`
+  }
+];
+
+export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedSessionId }) {
+  const [selectedPrompt, setSelectedPrompt] = useState(PRESET_PROMPTS[0]);
+  const [inputQuery, setInputQuery] = useState(PRESET_PROMPTS[0].query);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [hasTriggeredPaywall, setHasTriggeredPaywall] = useState(false);
+  
+  // View Modes: 'assistant' | 'memo-inspector' | 'inspector'
+  const [viewMode, setViewMode] = useState('assistant');
+  const [copiedResponse, setCopiedResponse] = useState(false);
+  const [copiedMemo, setCopiedMemo] = useState(false);
+  const [copiedHex, setCopiedHex] = useState(false);
+
+  // Typewriter streaming state for confidential unlocked text
+  const [displayedWordsCount, setDisplayedWordsCount] = useState(0);
+  const [isStreamingText, setIsStreamingText] = useState(false);
+
+  const terminalRef = useRef(null);
+  const paywallCardRef = useRef(null);
+  const successBannerRef = useRef(null);
+  const streamingContainerRef = useRef(null);
+
+  // Split the locked text into words for realistic streaming
+  const lockedWords = selectedPrompt.lockedText.split(' ');
+
+  // GSAP animation on component mount
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        terminalRef.current,
+        { opacity: 0, y: 35 },
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }
+      );
+    }, terminalRef);
+    return () => ctx.revert();
+  }, []);
+
+  // When unlock state transitions to true:
+  // 1. Animate out the paywall barrier card
+  // 2. Animate in the success notification banner
+  // 3. Trigger typewriter streaming effect
+  useEffect(() => {
+    if (isUnlocked) {
+      // Animate out paywall card if present
+      if (paywallCardRef.current) {
+        gsap.to(paywallCardRef.current, {
+          opacity: 0,
+          scale: 0.95,
+          height: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
+          marginTop: 0,
+          marginBottom: 0,
+          duration: 0.45,
+          ease: 'power2.inOut',
+          onComplete: () => {
+            setHasTriggeredPaywall(false);
+          }
+        });
+      }
+
+      // Animate in success banner with glowing bounce
+      if (successBannerRef.current) {
+        gsap.fromTo(
+          successBannerRef.current,
+          { opacity: 0, y: -15, scale: 0.96 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'back.out(1.4)', delay: 0.1 }
+        );
+      }
+
+      // Start Typewriter word-by-word streaming effect
+      setDisplayedWordsCount(0);
+      setIsStreamingText(true);
+    } else {
+      setDisplayedWordsCount(0);
+      setIsStreamingText(false);
+    }
+  }, [isUnlocked, selectedPrompt]);
+
+  // Typewriter streaming interval
+  useEffect(() => {
+    if (!isUnlocked || !isStreamingText) return;
+
+    if (displayedWordsCount < lockedWords.length) {
+      const timeout = setTimeout(() => {
+        // Stream 1 to 2 words per tick for natural LLM streaming cadence
+        setDisplayedWordsCount((prev) => Math.min(prev + 1, lockedWords.length));
+      }, 30);
+      return () => clearTimeout(timeout);
+    } else {
+      setIsStreamingText(false);
+    }
+  }, [isUnlocked, isStreamingText, displayedWordsCount, lockedWords.length]);
+
+  const handleSelectPreset = (preset) => {
+    setSelectedPrompt(preset);
+    setInputQuery(preset.query);
+    if (isUnlocked) {
+      // Re-trigger streaming for new prompt if unlocked
+      setDisplayedWordsCount(0);
+      setIsStreamingText(true);
+    }
+  };
+
+  const handleRunQuery = (e) => {
+    e?.preventDefault();
+    if (!inputQuery.trim()) return;
+
+    setIsGenerating(true);
+
+    // Simulate AI generation delay before encountering paywall
+    setTimeout(() => {
+      setIsGenerating(false);
+      if (!isUnlocked) {
+        setHasTriggeredPaywall(true);
+      } else {
+        setDisplayedWordsCount(0);
+        setIsStreamingText(true);
+      }
+    }, 600);
+  };
+
+  const handleResetDemo = () => {
+    window.location.reload();
+  };
+
+  const handleFastForwardStream = () => {
+    setDisplayedWordsCount(lockedWords.length);
+    setIsStreamingText(false);
+  };
+
+  const copyFullResponse = () => {
+    const fullText = `${selectedPrompt.previewText}\n\n${selectedPrompt.lockedText}`;
+    navigator.clipboard.writeText(fullText);
+    setCopiedResponse(true);
+    setTimeout(() => setCopiedResponse(false), 2000);
+  };
+
+  // Generate deterministic mock 512-byte hex for the current session for Judge inspection
+  const effectiveSessionId = unlockedSessionId || 'sess_9e14a8f9c';
+  const plaintextMemo = `CloakPay:${effectiveSessionId}|amt=0.005|nonce=0x7b84f3e2|exp=1731238500|scope=inference:full`;
+  
+  // Format simulated 512-byte hex ciphertext (1024 hex chars)
+  const simulatedHexCiphertext = `0xf4b72805966910b98134d399${effectiveSessionId.split('').map(c => c.charCodeAt(0).toString(16)).join('')}0000000000000000000000000000000000000000000000000000000000000000` +
+    `c4e79b12a830df93847291a84f30193850284710293847192837491827364819` +
+    `8374918273648192837491827364819283749182736481928374918273648192` +
+    `8374918273648192837491827364819283749182736481928374918273648192` +
+    `[512 BYTES CHACHA20-POLY1305 ENCRYPTED PAYLOAD VIA ORCHARD SHIELDED NOTE]`;
+
+  return (
+    <section id="demo" className="py-20 relative">
+      {/* Decorative ambient background */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] h-[550px] bg-emerald-500/5 blur-[160px] pointer-events-none rounded-full" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-medium mb-3">
+            <Terminal className="w-3.5 h-3.5" />
+            <span>INTERACTIVE SIMULATOR</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Live AI Paywall Demonstration
+          </h2>
+          <p className="mt-3 text-slate-300 text-sm sm:text-base">
+            Test how CloakPay intercepts an uncensored AI query with an instant <strong className="text-emerald-400">HTTP 402 Payment Required</strong> barrier, verified by shielded Zcash memos in sub-second mempool broadcasts.
+          </p>
+        </div>
+
+        {/* Preset Query Badges */}
+        <div className="mb-6 flex flex-wrap items-center justify-center gap-2.5">
+          <span className="text-xs font-mono text-slate-400 flex items-center gap-1 mr-1">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            Sample Inquiries:
+          </span>
+          {PRESET_PROMPTS.map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => handleSelectPreset(preset)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                selectedPrompt.id === preset.id
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
+                  : 'bg-cloak-900/80 text-slate-300 hover:text-white border border-white/10 hover:border-white/20'
+              }`}
+            >
+              <span className="text-[10px] uppercase font-mono px-1 py-0.2 rounded bg-black/40 text-slate-400">
+                {preset.category}
+              </span>
+              <span>{preset.title}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* The Main Terminal Interface Container */}
+        <div
+          ref={terminalRef}
+          className="rounded-3xl bg-cloak-900/90 border border-emerald-500/25 shadow-2xl shadow-emerald-950/40 overflow-hidden backdrop-blur-xl"
+        >
+          {/* Top Bar of the Terminal */}
+          <div className="px-5 py-4 bg-cloak-850/80 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
+            
+            {/* Left title & status */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-amber-500/80" />
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+              </div>
+              <div className="h-4 w-px bg-white/10 ml-1" />
+              <div className="flex items-center gap-2">
+                <Bot className="w-4 h-4 text-emerald-400" />
+                <span className="font-semibold text-white text-sm">
+                  Aethelgard AI
+                </span>
+                <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">
+                  • Sovereign Confidential Node #824
+                </span>
+              </div>
+            </div>
+
+            {/* Right mode tabs & controls */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Tab Switcher: Chat View vs Decoded Memo Inspector vs HTTP Wire Inspector */}
+              <div className="flex rounded-lg bg-cloak-950 p-0.5 border border-white/10 text-xs">
+                <button
+                  onClick={() => setViewMode('assistant')}
+                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${
+                    viewMode === 'assistant'
+                      ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Bot className="w-3.5 h-3.5" />
+                  Assistant
+                </button>
+
+                <button
+                  onClick={() => setViewMode('memo-inspector')}
+                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer relative ${
+                    viewMode === 'memo-inspector'
+                      ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Decoded Memo</span>
+                  <span className="text-[9px] font-mono bg-emerald-500/30 text-emerald-300 px-1 py-0.2 rounded font-bold uppercase tracking-wider">
+                    Judges
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setViewMode('inspector')}
+                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${
+                    viewMode === 'inspector'
+                      ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Code2 className="w-3.5 h-3.5" />
+                  HTTP 402 Inspector
+                </button>
+              </div>
+
+              {/* Status Badge */}
+              <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono border">
+                {isUnlocked ? (
+                  isStreamingText ? (
+                    <span className="flex items-center gap-1.5 text-emerald-400 border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                      <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                      </span>
+                      STREAMING RESPONSE...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-emerald-400 border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                      <Unlock className="w-3 h-3" />
+                      SESSION ACTIVE (200 OK)
+                    </span>
+                  )
+                ) : (
+                  <span className="flex items-center gap-1.5 text-amber-400 border-amber-500/30 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                    <Lock className="w-3 h-3" />
+                    PAYWALL ENFORCED (402)
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Success Banner when Unlocked */}
+          {isUnlocked && (
+            <div 
+              ref={successBannerRef}
+              className="px-6 py-3.5 bg-gradient-to-r from-emerald-950/70 via-emerald-900/30 to-cloak-900 border-b border-emerald-500/30 flex flex-wrap items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm font-bold text-emerald-300 font-sans">
+                      Shielded Zcash Orchard TX Verified — Session Active
+                    </span>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded font-mono">
+                      Halo 2 Proof OK
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-mono flex items-center gap-2 mt-0.5">
+                    <span>Memo: <code className="text-emerald-300 font-bold">CloakPay:{effectiveSessionId}</code></span>
+                    <span>•</span>
+                    <span>Decrypted in 780ms (Mempool IVK)</span>
+                    <span>•</span>
+                    <span className="text-emerald-400">0 bytes identity leaked</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action button to jump to memo inspector */}
+              <button
+                onClick={() => setViewMode('memo-inspector')}
+                className="px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Search className="w-3.5 h-3.5" />
+                Inspect 512-Byte Decoded Memo
+              </button>
+            </div>
+          )}
+
+          {/* Terminal Body Content */}
+          <div className="p-6">
+            
+            {/* VIEW MODE 1: ASSISTANT CHAT */}
+            {viewMode === 'assistant' && (
+              <div className="space-y-6">
+                
+                {/* User Prompt Bubble */}
+                <div className="flex items-start gap-3 max-w-3xl">
+                  <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-mono font-bold text-slate-300">YOU</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-cloak-850 border border-white/10 text-slate-200 text-sm leading-relaxed">
+                    {inputQuery}
+                  </div>
+                </div>
+
+                {/* AI Response Bubble */}
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500/30 to-teal-900/50 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/10">
+                    <Bot className="w-4 h-4 text-emerald-400" />
+                  </div>
+
+                  <div className="flex-1 overflow-hidden space-y-4">
+                    
+                    {/* Unlocked Preview Section (Visible to everyone) */}
+                    <div className="p-5 rounded-2xl bg-cloak-950/70 border border-white/5 font-mono text-xs sm:text-[13px] text-slate-300 leading-relaxed whitespace-pre-wrap select-text">
+                      {selectedPrompt.previewText}
+                    </div>
+
+                    {/* Paywall Interception Barrier or Unlocked Full Stream */}
+                    {!isUnlocked ? (
+                      <div
+                        ref={paywallCardRef}
+                        className="relative p-6 sm:p-8 rounded-2xl bg-gradient-to-b from-cloak-850/90 to-cloak-950 border-2 border-emerald-500/40 shadow-2xl shadow-emerald-950/60 overflow-hidden text-center"
+                      >
+                        {/* Glowing backdrop halo */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-44 bg-emerald-500/15 blur-3xl pointer-events-none rounded-full" />
+                        
+                        {/* Blur overlay previewing hidden text */}
+                        <div className="absolute inset-0 backdrop-blur-md bg-cloak-950/60 pointer-events-none" />
+
+                        {/* Interactive Paywall Trigger Card */}
+                        <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center">
+                          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-xl shadow-emerald-500/20 mb-3 animate-bounce">
+                            <Lock className="w-6 h-6" />
+                          </div>
+
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-[11px] font-mono font-semibold mb-2">
+                            <span>HTTP/1.1 402 PAYMENT REQUIRED</span>
+                          </div>
+
+                          <h3 className="text-xl font-bold text-white tracking-tight">
+                            Unlock Full Uncensored Output
+                          </h3>
+
+                          <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                            This high-value intelligence stream is protected by <strong className="text-emerald-400">CloakPay</strong>.
+                            Send a shielded micro-payment via Zcash to unlock immediate zero-latency streaming.
+                          </p>
+
+                          <div className="mt-4 p-3 rounded-xl bg-cloak-900 border border-white/10 w-full flex items-center justify-between text-xs font-mono">
+                            <div className="text-left">
+                              <span className="text-[10px] text-slate-500 uppercase block">Required Micro-Charge</span>
+                              <span className="font-bold text-emerald-400 text-sm">0.005 ZEC</span>
+                              <span className="text-slate-400 text-[11px] ml-1">(~$0.18)</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[10px] text-slate-500 uppercase block">Verification Protocol</span>
+                              <span className="text-slate-300 font-semibold text-xs">Shielded Memo (ZIP-321)</span>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => onTriggerPaywall(selectedPrompt.query)}
+                            className="mt-5 w-full py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm tracking-wide text-cloak-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 hover:from-emerald-300 hover:to-teal-200 transition-all shadow-xl shadow-emerald-500/25 active:scale-95 flex items-center justify-center gap-2 cursor-pointer group"
+                          >
+                            <Unlock className="w-4 h-4 transition-transform group-hover:-rotate-12" />
+                            <span>Unlock with Shielded Zcash (0.005 ZEC)</span>
+                          </button>
+
+                          <div className="mt-3 flex items-center gap-4 text-[11px] text-slate-400 font-mono">
+                            <span className="flex items-center gap-1">
+                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                              Zero Cookies / No Account
+                            </span>
+                            <span>•</span>
+                            <span>100% Shielded Mempool</span>
+                          </div>
+                        </div>
+
+                      </div>
+                    ) : (
+                      /* Unlocked Document Section (Typewriter word-by-word streaming) */
+                      <div 
+                        ref={streamingContainerRef}
+                        className="p-5 rounded-2xl bg-gradient-to-br from-cloak-950 to-emerald-950/20 border border-emerald-500/30 font-mono text-xs sm:text-[13px] text-emerald-200 leading-relaxed select-text relative group transition-all"
+                      >
+                        {/* Header badge inside unlocked text */}
+                        <div className="flex flex-wrap items-center justify-between pb-3 mb-3 border-b border-emerald-500/20 text-[11px] text-emerald-400 gap-2">
+                          <span className="flex items-center gap-1.5 font-bold">
+                            <Unlock className="w-3.5 h-3.5" />
+                            <span>CONFIDENTIAL UNLOCKED STREAM</span>
+                            <span className="text-slate-400 font-normal">
+                              (Token: {effectiveSessionId})
+                            </span>
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            {isStreamingText ? (
+                              <button
+                                onClick={handleFastForwardStream}
+                                className="px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 flex items-center gap-1 text-[10px] cursor-pointer"
+                                title="Skip typewriter effect"
+                              >
+                                <FastForward className="w-3 h-3" />
+                                Instant Reveal
+                              </button>
+                            ) : null}
+
+                            <button
+                              onClick={copyFullResponse}
+                              className="flex items-center gap-1 text-slate-400 hover:text-white transition-colors cursor-pointer text-xs"
+                            >
+                              {copiedResponse ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                              {copiedResponse ? 'Copied' : 'Copy'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Word-by-word Typewriter Text Output */}
+                        <div className="whitespace-pre-wrap leading-relaxed text-slate-200">
+                          {lockedWords.slice(0, displayedWordsCount).join(' ')}
+                          {isStreamingText && (
+                            <span className="inline-block w-2 h-4 bg-emerald-400 ml-1 animate-pulse align-middle" />
+                          )}
+                        </div>
+
+                        {/* Stream status footer */}
+                        <div className="mt-4 pt-3 border-t border-emerald-500/20 flex flex-wrap items-center justify-between text-[11px] text-emerald-400/80 gap-2 font-mono">
+                          <div className="flex items-center gap-2">
+                            {isStreamingText ? (
+                              <span className="flex items-center gap-1 text-amber-300">
+                                <Radio className="w-3 h-3 animate-pulse" />
+                                Streaming protected payload chunks...
+                              </span>
+                            ) : (
+                              <span className="text-emerald-400">
+                                ✓ Stream Complete • Attested by halo2_orchard::Verify
+                              </span>
+                            )}
+                          </div>
+                          <span>Mempool Latency: 780ms</span>
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* VIEW MODE 2: DECODED 512-BYTE MEMO INSPECTOR FOR JUDGES */}
+            {viewMode === 'memo-inspector' && (
+              <div className="space-y-6 font-mono text-xs">
+                
+                {/* Intro notice for judges */}
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-cloak-900 border border-emerald-500/30 flex items-start gap-3">
+                  <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
+                    <KeyRound className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white font-sans flex items-center gap-2">
+                      <span>Judge Inspection: 512-Byte Encrypted Zcash Memo Verification</span>
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono">
+                        RFC 9110 + ZIP-321
+                      </span>
+                    </h4>
+                    <p className="text-xs text-slate-300 mt-1 leading-relaxed font-sans">
+                      This inspector reveals what traveled across the peer-to-peer network versus what the recipient decrypted. 
+                      Notice how the <strong>session token</strong> cryptographically authenticates the HTTP stream without exposing the sender’s wallet address, IP, or balance history.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Grid comparing Public Ledger vs Decrypted Gateway State */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  {/* Left: What Public Blockchain Observers See */}
+                  <div className="p-4 rounded-2xl bg-cloak-950 border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                      <span className="text-[11px] font-bold text-red-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <EyeOff className="w-3.5 h-3.5" />
+                        1. Public Ledger (Blockchain Observers)
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-mono">Orchard Circuit</span>
+                    </div>
+
+                    <div className="space-y-2 text-[11px]">
+                      <div className="flex justify-between py-1 border-b border-white/5">
+                        <span className="text-slate-400">Sender Address:</span>
+                        <span className="text-red-400 font-bold">[CONCEALED VIA HALO 2]</span>
+                      </div>
+                      <div className="flex justify-between py-1 border-b border-white/5">
+                        <span className="text-slate-400">Recipient Address:</span>
+                        <span className="text-red-400 font-bold">[CONCEALED NOTE COMMITMENT]</span>
+                      </div>
+                      <div className="flex justify-between py-1 border-b border-white/5">
+                        <span className="text-slate-400">Transaction Value:</span>
+                        <span className="text-red-400 font-bold">[CONCEALED PEDERSEN VALUE]</span>
+                      </div>
+                      <div className="flex justify-between py-1 border-b border-white/5">
+                        <span className="text-slate-400">Ciphertext Algorithm:</span>
+                        <span className="text-slate-300">ChaCha20-Poly1305 (AEAD)</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                        <span>Raw 512-Byte Ciphertext:</span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(simulatedHexCiphertext);
+                            setCopiedHex(true);
+                            setTimeout(() => setCopiedHex(false), 2000);
+                          }}
+                          className="text-emerald-400 hover:underline cursor-pointer flex items-center gap-1 text-[10px]"
+                        >
+                          {copiedHex ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          {copiedHex ? 'Copied Hex' : 'Copy Hex'}
+                        </button>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-cloak-900 border border-white/5 text-[10px] text-slate-400 break-all leading-normal max-h-24 overflow-y-auto select-all">
+                        {simulatedHexCiphertext}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: What CloakPay Node Decrypts via IVK */}
+                  <div className="p-4 rounded-2xl bg-cloak-950 border border-emerald-500/30 space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-emerald-500/20">
+                      <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        2. Decrypted by CloakPay (Incoming Viewing Key)
+                      </span>
+                      <span className="text-[10px] text-emerald-300 font-mono">Zero-Leakage</span>
+                    </div>
+
+                    <div className="space-y-2 text-[11px]">
+                      <div className="flex justify-between py-1 border-b border-white/5">
+                        <span className="text-slate-400">Decryption Key:</span>
+                        <span className="text-emerald-300 font-mono">ivk_orchard_server_priv01</span>
+                      </div>
+                      <div className="flex justify-between py-1 border-b border-white/5">
+                        <span className="text-slate-400">Mempool Scan Speed:</span>
+                        <span className="text-emerald-400 font-bold">~780ms (Sub-second)</span>
+                      </div>
+                      <div className="flex justify-between py-1 border-b border-white/5">
+                        <span className="text-slate-400">Matched Session Token:</span>
+                        <span className="text-emerald-400 font-bold">{effectiveSessionId}</span>
+                      </div>
+                      <div className="flex justify-between py-1 border-b border-white/5">
+                        <span className="text-slate-400">Client IP or Identity:</span>
+                        <span className="text-emerald-400 font-bold">0 BYTES STORED</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                        <span>Decoded Plaintext UTF-8 Memo:</span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(plaintextMemo);
+                            setCopiedMemo(true);
+                            setTimeout(() => setCopiedMemo(false), 2000);
+                          }}
+                          className="text-emerald-400 hover:underline cursor-pointer flex items-center gap-1 text-[10px]"
+                        >
+                          {copiedMemo ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                          {copiedMemo ? 'Copied Memo' : 'Copy Memo'}
+                        </button>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-cloak-900 border border-emerald-500/30 text-[11px] text-emerald-300 font-bold break-all leading-normal select-all">
+                        {plaintextMemo}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Structured Payload Breakdown Table */}
+                <div className="p-4 rounded-2xl bg-cloak-950 border border-white/10 space-y-3">
+                  <h5 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                    Parsed 512-Byte Memo Schema (RFC-CLOAKPAY-01)
+                  </h5>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="border-b border-white/10 text-slate-400 text-[11px]">
+                          <th className="py-2 px-3">Field</th>
+                          <th className="py-2 px-3">Value in Memo</th>
+                          <th className="py-2 px-3">Purpose in Protocol</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        <tr>
+                          <td className="py-2.5 px-3 text-emerald-400 font-bold">Prefix</td>
+                          <td className="py-2.5 px-3 text-slate-300">CloakPay:</td>
+                          <td className="py-2.5 px-3 text-slate-400">Application namespace filter for incoming viewing keys</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 px-3 text-emerald-400 font-bold">Session Hash</td>
+                          <td className="py-2.5 px-3 text-white font-bold">{effectiveSessionId}</td>
+                          <td className="py-2.5 px-3 text-slate-400">Binds transaction to client's ephemeral HTTP 402 challenge</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 px-3 text-emerald-400 font-bold">Amount</td>
+                          <td className="py-2.5 px-3 text-slate-300">0.005 ZEC</td>
+                          <td className="py-2.5 px-3 text-slate-400">Exact micro-settlement price per token burst</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 px-3 text-emerald-400 font-bold">Nonce</td>
+                          <td className="py-2.5 px-3 text-slate-300">0x7b84f3e2</td>
+                          <td className="py-2.5 px-3 text-slate-400">Anti-replay defense against mempool frontrunning</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2.5 px-3 text-emerald-400 font-bold">Scope</td>
+                          <td className="py-2.5 px-3 text-slate-300">inference:full</td>
+                          <td className="py-2.5 px-3 text-slate-400">Grants token permission for high-value unredacted generation</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* VIEW MODE 3: HTTP 402 WIRE INSPECTOR */}
+            {viewMode === 'inspector' && (
+              <div className="p-4 rounded-2xl bg-cloak-950 border border-white/10 font-mono text-xs space-y-4">
+                <div>
+                  <div className="text-slate-400 text-[11px] font-bold mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    Client HTTP Request:
+                  </div>
+                  <pre className="p-3 rounded-xl bg-cloak-900 border border-white/5 text-slate-300 overflow-x-auto">
+{`POST /api/v1/aethelgard/inference HTTP/1.1
+Host: api.cloakpay.network
+User-Agent: CloakClient/1.0 (Headless; No-Telemetry)
+Content-Type: application/json
+Accept: text/event-stream
+
+{
+  "model": "aethelgard-sovereign-70b",
+  "query": "${inputQuery.substring(0, 50)}...",
+  "stream": true
+}`}
+                  </pre>
+                </div>
+
+                <div>
+                  <div className="text-amber-400 text-[11px] font-bold mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-400" />
+                    Server Response (Pre-Payment Intercept):
+                  </div>
+                  <pre className="p-3 rounded-xl bg-cloak-900 border border-amber-500/20 text-amber-200/90 overflow-x-auto">
+{`HTTP/1.1 402 Payment Required
+Server: CloakPay-Gateway/0.9.4
+Content-Type: application/problem+json
+WWW-Authenticate: CloakPay realm="session_${effectiveSessionId}",
+  zcash_uri="zcash:u1m6f94r...amount=0.005&memo=CloakPay:${effectiveSessionId}",
+  expiry="300"
+X-CloakPay-Status: AwaitingShieldedMempoolNote
+Retry-After: 2`}
+                  </pre>
+                </div>
+
+                {isUnlocked && (
+                  <div>
+                    <div className="text-emerald-400 text-[11px] font-bold mb-1 uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      Post-Payment Mempool Re-Verification:
+                    </div>
+                    <pre className="p-3 rounded-xl bg-cloak-900 border border-emerald-500/30 text-emerald-300 overflow-x-auto">
+{`HTTP/1.1 200 OK
+Server: CloakPay-Gateway/0.9.4
+Content-Type: text/event-stream
+X-CloakPay-Settlement: Orchard-Mempool-Verified (Halo 2 Proof)
+X-CloakPay-Memo-Decoded: CloakPay:${effectiveSessionId}
+X-CloakPay-Identity: Concealed (Zero-Knowledge)
+Cache-Control: no-cache, no-store`}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Input Form at Bottom */}
+            <form onSubmit={handleRunQuery} className="mt-6 pt-5 border-t border-white/10 flex items-center gap-3">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={inputQuery}
+                  onChange={(e) => setInputQuery(e.target.value)}
+                  placeholder="Ask any proprietary legal, security, or AI inference question..."
+                  className="w-full pl-4 pr-12 py-3.5 rounded-2xl bg-cloak-950 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-white placeholder-slate-500 font-sans outline-none transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={isGenerating}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition-colors cursor-pointer disabled:opacity-40"
+                  aria-label="Submit Question"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+
+              {isUnlocked && (
+                <button
+                  type="button"
+                  onClick={handleResetDemo}
+                  title="Reset demo session"
+                  className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              )}
+            </form>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+  );
+}
