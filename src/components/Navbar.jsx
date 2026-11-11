@@ -24,24 +24,14 @@ export default function Navbar({ onOpenDemo }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo & Brand */}
-          <a href="#" className="flex items-center gap-3 group">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-950/40 border border-emerald-500/30 group-hover:border-emerald-400 transition-colors shadow-lg shadow-emerald-500/10">
-              <Shield className="w-5 h-5 text-emerald-400 transition-transform group-hover:scale-110" />
-              <div className="absolute inset-0 rounded-xl bg-emerald-400/20 blur-md -z-10 group-hover:opacity-100 opacity-50 transition-opacity" />
+          <a href="#" className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-xl py-1 px-1 -ml-1">
+            <div className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-950/40 border border-emerald-500/30 group-hover:border-emerald-400/60 transition-all shadow-md shadow-emerald-500/10">
+              <Shield className="w-4.5 h-4.5 text-emerald-400 transition-transform group-hover:scale-105" />
+              <div className="absolute inset-0 rounded-xl bg-emerald-400/20 blur-sm -z-10 group-hover:opacity-100 opacity-40 transition-opacity" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-bold tracking-tight text-white font-sans">
-                  Cloak<span className="text-emerald-400">Pay</span>
-                </span>
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-semibold tracking-wider">
-                  HTTP 402
-                </span>
-              </div>
-              <span className="text-[11px] text-slate-400 tracking-wide block -mt-1 font-mono">
-                Zcash Shielded Gateway
-              </span>
-            </div>
+            <span className="text-xl font-semibold tracking-[-0.02em] text-white font-display">
+              Cloak<span className="text-emerald-400">Pay</span>
+            </span>
           </a>
 
           {/* Desktop Navigation Links */}

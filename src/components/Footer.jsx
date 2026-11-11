@@ -12,15 +12,12 @@ export default function Footer({ onOpenDemo }) {
 
           {/* Brand Info */}
           <div className="md:col-span-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-950/40 border border-emerald-500/30 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-emerald-400" />
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-950/40 border border-emerald-500/30 flex items-center justify-center shadow-md shadow-emerald-500/10">
+                <Shield className="w-4.5 h-4.5 text-emerald-400" />
               </div>
-              <span className="text-xl font-bold tracking-tight text-white">
+              <span className="text-xl font-semibold tracking-[-0.02em] text-white font-display">
                 Cloak<span className="text-emerald-400">Pay</span>
-              </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
-                HTTP 402
               </span>
             </div>
 
