@@ -1,38 +1,170 @@
 # CloakPay 🛡️⚡
 
-**The HTTP 402 Micropayment Protocol for AI & Media powered by Zcash Encrypted Memos.**
+**Per-request API monetization powered by shielded Zcash (ZEC).**
 
-> Accountless. Zero wallet-connect tracking. Zero metadata leaks. Sub-second mempool verification.
+> "Pay for one API request—not a subscription."  
+> CloakPay helps API providers charge per request in shielded ZEC. A user pays from a Zcash wallet, and access is granted after the payment is verified—without creating a CloakPay account or connecting a persistent Web3 wallet.
 
----
-
-## ⚡ What is CloakPay?
-
-RFC 9110 reserves HTTP 402 (‘Payment Required’) for future use; it does not define a payment protocol. CloakPay uses 402 as its application-level payment challenge and supplies payment instructions using a ZIP-321 URI with shielded Zcash (Orchard / Halo 2). 
-
-Unlike Ethereum, Solana, or Bitcoin Lightning:
-- **Zero Public Ledger Clustering**: Senders use Orchard shielded pools, concealing sender addresses, balances, and transaction graphs.
-- **Encrypted Session Memos**: The 512-byte Zcash shielded memo field embeds an ephemeral cryptographic session token (`CloakPay:sess_<hash>`).
-- **Sub-Second Mempool Verification**: The server's incoming viewing key (IVK) decrypts matching unconfirmed notes directly in the mempool (~800ms) to stream paywalled AI responses without waiting for block confirmations.
-- **Zero Account Registration**: No emails, no phone numbers, no tracking cookies, and no Web3 wallet-connect telemetry (e.g. Infura / Alchemy IP logging).
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-cloakpay--zec.vercel.app-10b981?style=for-the-badge&logo=vercel)](https://cloakpay-zec.vercel.app)
+[![Zcash](https://img.shields.io/badge/Powered%20By-Zcash%20Orchard-f4b728?style=for-the-badge&logo=zcash)](https://z.cash)
+[![Standards](https://img.shields.io/badge/Standards-RFC%209110%20%7C%20ZIP--321-blue?style=for-the-badge)](https://zips.z.cash/zip-0321)
 
 ---
 
-## 🚀 Tech Stack
+## 🌐 Live Application
 
-- **React 19**: Functional components, custom hooks, and modular architecture.
-- **Tailwind CSS**: Dark-mode fintech styling with deep slate/obsidian palette (`#06080d`) and glowing Zcash emerald accents (`#10b981`).
-- **GSAP (GreenSock Animation Platform)**: Entrance timelines, floating UI cards, and spring-like modal transitions.
-- **Lucide React**: Clean minimalist cyber-security and fintech icons.
-- **qrcode.react**: High-precision SVG generation for ZIP-321 Zcash payment URIs.
-- **canvas-confetti**: Celebration explosion upon zero-knowledge mempool payment verification.
+- **Production Deployment:** [https://cloakpay-zec.vercel.app](https://cloakpay-zec.vercel.app)
+- **Repository:** [https://github.com/Miracle-Alajemba/Cloakpay](https://github.com/Miracle-Alajemba/Cloakpay)
 
 ---
 
-## 🛠️ Getting Started
+## ⚡ Overview & Problem Statement
 
-### 1. Install Dependencies
+### The Problem with Traditional API Monetization
+* **SaaS Subscription Fatigue:** API providers either enforce \$20–\$100+/month recurring SaaS tiers or require credit cards with KYC, identity tracking, and billing profiles.
+* **Public Blockchain Linkage:** Traditional Web3 payment models (Ethereum, Solana) expose caller wallet addresses, token balances, and entire transaction graphs on public explorers.
+* **Wallet-Connect Tracking:** Connecting browser wallets leaks RPC endpoint telemetry, client IP addresses (via providers like Infura/Alchemy), and cross-site session fingerprints.
+
+### The CloakPay Solution
+CloakPay allows API providers to gate individual REST or streaming endpoints behind micropayments denominated in shielded Zcash (ZEC):
+* **Accountless & Frictionless:** Users do not register, create passwords, or link credit cards.
+* **Shielded On-Chain:** Payments use Zcash **Orchard shielded note pools**. Senders, recipients, and transaction amounts are concealed from public blockchain observers.
+* **ZIP-321 Encrypted Memos:** An ephemeral cryptographic session token (`CloakPay:sess_<token>`) is embedded in the 512-byte shielded memo field.
+* **Least-Privilege Key Architecture:** The API server holds only an **Incoming Viewing Key (IVK)** to detect payments and decrypt session memos. No private spending keys are ever stored on the application server.
+
+> **RFC 9110 Compliance Note:**  
+> RFC 9110 reserves HTTP 402 (‘Payment Required’) for future use; it does not define a payment protocol. CloakPay uses 402 as its application-level payment challenge and supplies payment instructions using a ZIP-321 URI.
+
+---
+
+## 🔬 Architecture & The 3-Step Flow
+
+```
++---------------------+              +-----------------------+              +------------------------+
+| Client / AI User    |              | CloakPay API Gateway  |              | Zcash Shielded Mempool |
++---------------------+              +-----------------------+              +------------------------+
+           |                                     |                                       |
+           |--- 1. POST /v1/ai/inference ------->|                                       |
+           |    (Unauthenticated API request)    |                                       |
+           |                                     |                                       |
+           |<-- 2. HTTP 402 Payment Required ----|                                       |
+           |    - ZIP-321 Payment URI            |                                       |
+           |    - Ephemeral session token        |                                       |
+           |    - Base64url memo parameter       |                                       |
+           |                                     |                                       |
+           |--- 3. Broadcast Shielded Note --------------------------------------------->|
+           |    (0.005 ZEC with session memo)    |                                       |
+           |                                     |<-- 4. Server scans note via IVK ------|
+           |                                     |       (Matches session token in memo) |
+           |                                     |                                       |
+           |<-- 5. HTTP 200 Streaming Stream ----|                                       |
+           |    (Full response unlocked)         |                                       |
+```
+
+### Step 1: Request a Paid API Resource
+The client invokes a protected API route (e.g. `POST /v1/ai/inference`). The provider intercepts the call and responds with an **HTTP 402 Payment Required** challenge containing:
+* A Zcash Unified Address (`u1...`)
+* The required amount (e.g. `0.005 ZEC`)
+* A standard **ZIP-321 URI** with an ephemeral session token encoded in Base64url (`RFC 4648 §5` without `=` padding).
+
+### Step 2: Receive Payment Request & Pay from Wallet
+The user opens any ZIP-321 compatible Zcash wallet (e.g. **Zashi**, **YWallet**, **Zingo!**) and scans the QR code or copies the payment parameters. The wallet broadcasts an Orchard shielded note carrying the session memo. On-chain transaction details remain concealed.
+
+### Step 3: IVK Note Detection & Access Unlock
+The API provider's background scanner uses an **Incoming Viewing Key (IVK)** to detect matching unspent notes in the mempool or mined blocks. Decrypting the memo matches the client's session token and unlocks the HTTP 200 streaming response.
+
+---
+
+## 🛡️ Technical & Privacy Boundary
+
+To maintain complete engineering honesty:
+* **What Zcash Shields:** On-chain transaction graph, sender address, recipient address, and payment amounts are shielded from external blockchain observers.
+* **What is Not Hidden:** Calling an API server over HTTP inherently transmits network-layer metadata (client IP address, TLS session data, user-agent, and the prompt text) to that specific API provider. Zcash shielding does not automatically anonymize network transport to the destination server (users seeking network anonymity should pair CloakPay with Tor or VPNs).
+
+---
+
+## 📊 Implementation Status: What Works Today vs. Roadmap
+
+| Feature | Status | Description |
+| :--- | :--- | :--- |
+| **Interactive HTTP 402 Simulator** | ✅ Implemented | Live 4-stage cycle: *Payment requested* &rarr; *Waiting for payment* &rarr; *Payment detected* &rarr; *Access granted* with typewriter text streaming and instant reveal. |
+| **Spec-Compliant ZIP-321 Builder** | ✅ Implemented | Strict RFC 4648 §5 Base64url encoding without `=` padding; parses and generates standard `zcash:` URIs. |
+| **512-Byte Shielded Memo Schema** | ✅ Implemented | Application payload schema: `CloakPay:sess_<id>\|amt=0.005\|nonce=0x...\|scope=api:inference` with roundtrip decoder. |
+| **Reference Middleware Code** | ✅ Implemented | Reference implementations for Express/Node.js, Next.js App Router, and Python FastAPI utilizing Incoming Viewing Keys (`ivk`). |
+| **Automated E2E Verification Suite** | ✅ Implemented | 27+ automated unit & integration tests (`node test-e2e.mjs`) verifying crypto routines, typography, and UI state integrity. |
+| **Live `zebrad` / `zaino` gRPC Daemon** | 🔄 Planned | Background service connecting directly to Zebra/Zaino nodes for real-time unconfirmed mempool note decryption. |
+| **Distributed Session Store** | 🔄 Planned | Persistent Redis / PostgreSQL nonce index for replay attack mitigation across clustered API workers. |
+| **Multi-Tenant Merchant Dashboard** | 🔄 Planned | Non-custodial portal for API providers to register Unified Addresses and deploy IVKs. |
+| **Published SDK Packages** | 🔄 Planned | Packaged `@cloakpay/sdk` on npm and `python-cloakpay` on PyPI. |
+
+---
+
+## 💻 Developer Reference Middleware
+
+CloakPay is designed to integrate into existing API frameworks with minimal code:
+
+### Node.js / Express
+```javascript
+import express from 'express';
+import { cloakpay } from '@cloakpay/sdk';
+
+const app = express();
+
+// Protect API endpoint with per-request shielded ZEC
+app.post('/api/v1/ai/inference', 
+  cloakpay({
+    amount: '0.005', // ZEC
+    recipient: process.env.ZCASH_UNIFIED_ADDRESS,
+    // Least-privileged key: IVK can only detect notes, cannot spend funds
+    ivk: process.env.ZCASH_INCOMING_VIEWING_KEY,
+    memoPrefix: 'CloakPay:',
+    timeoutSeconds: 300
+  }),
+  async (req, res) => {
+    const stream = await aiModel.generateStream({ prompt: req.body.prompt });
+    res.setHeader('Content-Type', 'text/event-stream');
+    stream.pipe(res);
+  }
+);
+
+app.listen(3000);
+```
+
+### Python FastAPI
+```python
+from fastapi import FastAPI, Depends
+from cloakpay import CloakPayGuard, ShieldedSession
+import os
+
+app = FastAPI()
+
+# Deploy only the Incoming Viewing Key (IVK) to the application runtime
+guard = CloakPayGuard(
+    amount_zec="0.005",
+    unified_address=os.environ["ZCASH_UNIFIED_ADDRESS"],
+    ivk=os.environ["ZCASH_INCOMING_VIEWING_KEY"]
+)
+
+@app.post("/v1/legal/synthesize")
+async def synthesize_contract(
+    prompt: str, 
+    session: ShieldedSession = Depends(guard)
+):
+    # Verified by IVK memo decryption on provider node
+    return {"result": await llm.complete(prompt), "session_id": session.id}
+```
+
+---
+
+## 🛠️ Local Quickstart
+
+### Prerequisites
+- Node.js 18+ and npm
+
+### 1. Clone & Install
 ```bash
+git clone git@github.com:Miracle-Alajemba/Cloakpay.git
+cd Cloakpay
 npm install
 ```
 
@@ -40,52 +172,36 @@ npm install
 ```bash
 npm run dev
 ```
-Open your browser at `http://localhost:3000` (or the port specified by Vite).
+Open `http://localhost:3000` to interact with the landing page and simulator.
 
-### 3. Production Build
+### 3. Run Automated E2E Verification Suite
+```bash
+node test-e2e.mjs
+```
+Runs 27+ checks verifying:
+- Typography & font loading (`Outfit`, `Inter`, `JetBrains Mono`)
+- Exact hero copy and positioning
+- RFC 4648 §5 Base64url ZIP-321 memo encoding and round-trip decoding
+- Least-privileged key usage (`ivk` exclusively)
+- Honest simulation notices and privacy boundaries
+- RFC 9110 HTTP 402 accuracy
+
+### 4. Build for Production
 ```bash
 npm run build
 ```
+Generates optimized static production bundle in `dist/`.
 
 ---
 
-## 🔬 Protocol Flow (RFC 9110 + ZIP-321)
-
-```
-[ Client / AI User ]                 [ CloakPay Gateway ]                 [ Zcash Shielded Mempool ]
-        |                                     |                                        |
-        |--- 1. POST /api/inference --------->|                                        |
-        |<-- 2. HTTP 402 Payment Required ----|                                        |
-        |   (ZIP-321 URI + Session Token)     |                                        |
-        |                                     |                                        |
-        |--- 3. Broadcast Shielded Note ---------------------------------------------->|
-        |      (Memo: CloakPay:sess_0x8f2)    |                                        |
-        |                                     |<-- 4. IVK decrypts memo (~800ms) ------|
-        |                                     |                                        |
-        |<-- 5. HTTP 200 Stream Granted ------|                                        |
-```
-
----
-
-## 👨‍⚖️ Judge Features & Live Demo Controls
-
-1. **Instant Paywall Simulation**:
-   - Hit "Try Interactive AI Paywall" or send an uncensored inquiry in the AI terminal to trigger the HTTP 402 barrier.
-2. **GSAP Spring & Fade Transitions**:
-   - Paywall modal scales in with a spring bounce (`ease: 'back.out(1.5)'`) and exits with a smooth GSAP fade-out upon payment confirmation.
-3. **Verified Session Active Banner**:
-   - When simulated payment broadcasts, the AI Terminal displays the verified Orchard Shielded Note session with sub-second mempool attestation (Halo 2).
-4. **Live Word-by-Word Typewriter Streaming**:
-   - The previously blurred confidential output streams in real-time with an animated terminal cursor, replicating real LLM inference stream unlock.
-5. **Decoded 512-Byte Memo Inspector**:
-   - Inspect the raw 512-byte ChaCha20-Poly1305 ciphertext versus the decrypted plaintext token (`CloakPay:sess_<id>|amt=0.005|nonce=0x7b84f3e2`).
-   - Verifies that zero sender identity or wallet addresses are leaked.
-
----
-
-## 📜 Standards & Compliance
+## 📜 Standards & Specifications
 - **HTTP 402**: RFC 9110 Section 15.5.3 (RFC 9110 reserves the status code for future use; CloakPay defines the application-level challenge protocol)
 - **ZIP-321**: Zcash Payment Request URIs
 - **ZIP-316**: Unified Addresses & Orchard Receiver Pools
-- **Halo 2**: Recursive Zero-Knowledge SNARKs without trusted setup
+- **RFC 4648 §5**: Base64url encoding without padding
+- **Least-Privilege Key Architecture**: Incoming Viewing Keys (IVK) only
 
+---
+
+## ⚖️ License
+MIT License. Built for the Zcash Cypherpunk Hackathon.

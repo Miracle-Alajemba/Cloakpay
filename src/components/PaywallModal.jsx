@@ -261,36 +261,38 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
           <div className="flex rounded-xl bg-cloak-950 p-1 border border-white/5 text-xs font-medium">
             <button
               onClick={() => setTab('qr')}
-              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+              className={`flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                 tab === 'qr'
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <QrCode className="w-3.5 h-3.5" />
-              ZIP-321 QR Code
+              <QrCode className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">ZIP-321 QR Code</span>
+              <span className="sm:hidden">QR Code</span>
             </button>
             <button
               onClick={() => setTab('manual')}
-              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+              className={`flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                 tab === 'manual'
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Code2 className="w-3.5 h-3.5" />
-              Address & Base64url Memo
+              <Code2 className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">Address & Base64url Memo</span>
+              <span className="sm:hidden">Parameters</span>
             </button>
             <button
               onClick={() => setTab('wallets')}
-              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+              className={`flex-1 py-1.5 px-2 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                 tab === 'wallets'
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <Layers className="w-3.5 h-3.5" />
-              Wallets
+              <Layers className="w-3.5 h-3.5 shrink-0" />
+              <span>Wallets</span>
             </button>
           </div>
 

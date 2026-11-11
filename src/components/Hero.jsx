@@ -99,13 +99,17 @@ export default function Hero({ onExploreDemo }) {
 
           {/* Action-Oriented Buttons (Matching working page anchors) */}
           <div ref={ctaRef} className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <button
-              onClick={onExploreDemo}
+            <a
+              href="#demo"
+              onClick={(e) => {
+                e.preventDefault();
+                onExploreDemo();
+              }}
               className="px-6 py-3.5 rounded-xl font-medium text-sm text-cloak-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
             >
               <span>Try the interactive demo</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </a>
 
             <a
               href="#developers"
@@ -197,9 +201,20 @@ export default function Hero({ onExploreDemo }) {
               <strong>Why shielded Zcash?</strong> Orchard transactions keep the sender, recipient, and amount private on the public blockchain.
             </span>
           </div>
-          <span className="text-slate-400 font-mono text-[11px] shrink-0">
-            No accounts • No wallet-connect telemetry
-          </span>
+          <div className="flex items-center gap-3 text-[11px] font-mono shrink-0">
+            <span className="text-slate-400">
+              No accounts • No wallet-connect telemetry
+            </span>
+            <span className="text-white/20 hidden sm:inline">•</span>
+            <a 
+              href="#roadmap" 
+              onClick={(e) => handleScrollTo(e, 'roadmap')}
+              className="text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 rounded px-1"
+            >
+              <span>Roadmap</span>
+              <ArrowRight className="w-3 h-3" />
+            </a>
+          </div>
         </div>
 
       </div>

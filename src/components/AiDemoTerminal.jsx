@@ -313,7 +313,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
               </span>
 
               {/* Tab Switcher */}
-              <div className="flex rounded-lg bg-cloak-950 p-0.5 border border-white/10 text-xs">
+              <div className="flex rounded-lg bg-cloak-950 p-0.5 border border-white/10 text-xs overflow-x-auto max-w-full scrollbar-none">
                 <button
                   onClick={() => setViewMode('assistant')}
                   className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${

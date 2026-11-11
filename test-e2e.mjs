@@ -103,6 +103,12 @@ test('Hero secondary button copy is "View developer integration" with #developer
   assert(heroJsx.includes('href="#developers"'), 'Secondary CTA must link to #developers');
 });
 
+test('Hero includes working anchor links for #demo, #developers, and #roadmap', () => {
+  assert(heroJsx.includes('href="#demo"'), 'Hero must link to #demo');
+  assert(heroJsx.includes('href="#developers"'), 'Hero must link to #developers');
+  assert(heroJsx.includes('href="#roadmap"'), 'Hero must link to #roadmap');
+});
+
 test('Hero incorporates the clean 3-step visual flow right below hero copy', () => {
   assert(heroJsx.includes('Request a paid API resource.'), 'Step 1 text missing in Hero flow');
   assert(heroJsx.includes('Receive a Zcash payment request and pay from a compatible wallet.'), 'Step 2 text missing in Hero flow');
@@ -206,6 +212,89 @@ test('RoadmapStatus lists implemented features vs planned roadmap items', () => 
   assert(roadmapJsx.includes('Implemented in this Repo'), 'Implemented section missing in RoadmapStatus');
   assert(roadmapJsx.includes('Planned Roadmap'), 'Planned roadmap section missing in RoadmapStatus');
   assert(roadmapJsx.includes('zebrad / zaino'), 'zebrad/zaino daemon mentioned in Roadmap');
+});
+
+// ─── PART 6: INTERACTIVE FLOW & PRESETS AUDIT ───────────────────────────────
+
+console.log('\n\x1b[36m━━━ PART 6: Interactive Flow & Presets Audit ━━━\x1b[0m\n');
+
+test('AiDemoTerminal defines all 3 sample inquiry presets with clean query/lockedText pairs', () => {
+  assert(aiDemoJsx.includes("id: 'swiss-zk'"), 'swiss-zk preset missing');
+  assert(aiDemoJsx.includes("id: 'smart-contract-audit'"), 'smart-contract-audit preset missing');
+  assert(aiDemoJsx.includes("id: 'decentralized-media'"), 'decentralized-media preset missing');
+  assert(aiDemoJsx.includes('Swiss ZK Patent Clause'), 'Swiss ZK Patent Clause title missing');
+  assert(aiDemoJsx.includes('AI Payment Agent Audit'), 'AI Payment Agent Audit title missing');
+  assert(aiDemoJsx.includes('Micro-Royalty Stream'), 'Micro-Royalty Stream title missing');
+});
+
+test('AiDemoTerminal cleanly switches presets and re-streams if unlocked', () => {
+  assert(aiDemoJsx.includes('handleSelectPreset'), 'handleSelectPreset handler missing');
+  assert(aiDemoJsx.includes('setSelectedPrompt(preset)'), 'setSelectedPrompt missing');
+  assert(aiDemoJsx.includes('setInputQuery(preset.query)'), 'setInputQuery missing');
+});
+
+test('Interactive simulation supports complete 4-stage payment state cycle', () => {
+  // Stage 1: Payment requested
+  assert(aiDemoJsx.includes("'Payment requested'"), 'Initial state "Payment requested" missing');
+  // Stage 2: Waiting for payment
+  assert(paywallModalJsx.includes('Waiting for payment'), '"Waiting for payment" state missing in modal');
+  // Stage 3: Payment detected
+  assert(paywallModalJsx.includes('Payment detected'), '"Payment detected" state missing in modal');
+  // Stage 4: Access granted
+  assert(paywallModalJsx.includes('Access granted'), '"Access granted" state missing in modal');
+  assert(aiDemoJsx.includes("'Access granted'"), '"Access granted" state missing in terminal');
+});
+
+test('AiDemoTerminal features typewriter word-by-word streaming and Instant Reveal button', () => {
+  assert(aiDemoJsx.includes('displayedWordsCount'), 'Typewriter word count missing');
+  assert(aiDemoJsx.includes('Instant Reveal'), 'Instant Reveal button missing');
+  assert(aiDemoJsx.includes('handleFastForwardStream'), 'Fast forward handler missing');
+});
+
+test('AiDemoTerminal renders Decoded Memo [Judges] tab and HTTP 402 Inspector tab', () => {
+  assert(aiDemoJsx.includes("viewMode === 'memo-inspector'"), 'memo-inspector view mode missing');
+  assert(aiDemoJsx.includes("viewMode === 'inspector'"), 'HTTP 402 wire inspector view mode missing');
+  assert(aiDemoJsx.includes('WWW-Authenticate: CloakPay'), 'WWW-Authenticate header missing in inspector');
+  assert(aiDemoJsx.includes('Structured 512-Byte Memo Schema'), 'Structured memo schema table missing');
+});
+
+test('PaywallModal and AiDemoTerminal include 1-click copy buttons for URI, address, and memos', () => {
+  assert(paywallModalJsx.includes("copyToClipboard(zip321Uri, 'uri')"), 'ZIP-321 URI copy button missing in modal');
+  assert(paywallModalJsx.includes("copyToClipboard(zcashUnifiedAddress, 'address')"), 'Address copy button missing in modal');
+  assert(paywallModalJsx.includes("copyToClipboard(base64urlMemo, 'base64')"), 'Base64url memo copy button missing in modal');
+  assert(aiDemoJsx.includes('setCopiedMemo'), 'Memo copy button missing in terminal');
+  assert(aiDemoJsx.includes('setCopiedZipUri'), 'Zip URI copy button missing in terminal');
+  assert(aiDemoJsx.includes('copyFullResponse'), 'Copy response output button missing');
+});
+
+// ─── PART 7: SUBMISSION DOCUMENTATION & QUICKSTART AUDIT ─────────────────────
+
+console.log('\n\x1b[36m━━━ PART 7: Submission Documentation & Quickstart Audit ━━━\x1b[0m\n');
+
+const readmeMd = readFileSync('./README.md', 'utf-8');
+
+test('README.md features live demo link to https://cloakpay-zec.vercel.app', () => {
+  assert(readmeMd.includes('https://cloakpay-zec.vercel.app'), 'Live demo URL missing in README');
+});
+
+test('README.md includes 3-step architecture flow and ASCII diagram', () => {
+  assert(readmeMd.includes('The 3-Step Flow'), '3-Step flow missing in README');
+  assert(readmeMd.includes('Step 1: Request a Paid API Resource'), 'Step 1 missing in README');
+  assert(readmeMd.includes('Step 2: Receive Payment Request & Pay from Wallet'), 'Step 2 missing in README');
+  assert(readmeMd.includes('Step 3: IVK Note Detection & Access Unlock'), 'Step 3 missing in README');
+});
+
+test('README.md honestly documents What Works Today vs. Roadmap', () => {
+  assert(readmeMd.includes('What Works Today vs. Roadmap'), 'Roadmap table missing in README');
+  assert(readmeMd.includes('Spec-Compliant ZIP-321 Builder'), 'Implemented ZIP-321 builder missing in README');
+  assert(readmeMd.includes('Live `zebrad` / `zaino` gRPC Daemon'), 'Planned zebrad/zaino daemon missing in README');
+});
+
+test('README.md provides full local quickstart commands', () => {
+  assert(readmeMd.includes('npm install'), 'npm install missing in README quickstart');
+  assert(readmeMd.includes('npm run dev'), 'npm run dev missing in README quickstart');
+  assert(readmeMd.includes('node test-e2e.mjs'), 'node test-e2e.mjs missing in README quickstart');
+  assert(readmeMd.includes('npm run build'), 'npm run build missing in README quickstart');
 });
 
 // ─── SUMMARY ─────────────────────────────────────────────────────────────────

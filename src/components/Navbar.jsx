@@ -141,6 +141,13 @@ export default function Navbar({ onOpenDemo }) {
           >
             Developer Middleware
           </a>
+          <a
+            href="#roadmap"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-md text-sm text-slate-300 hover:bg-white/5 hover:text-emerald-400"
+          >
+            Roadmap & Status
+          </a>
           <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
             <button
               onClick={() => {

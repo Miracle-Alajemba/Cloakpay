@@ -67,7 +67,7 @@ export default function Footer({ onOpenDemo }) {
               </li>
               <li>
                 <a href="#comparison" className="hover:text-emerald-400 transition-colors">
-                  Zero-Metadata Matrix
+                  Privacy Comparison Matrix
                 </a>
               </li>
               <li>
