@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Heart, ExternalLink, Terminal, Lock } from 'lucide-react';
+import { Shield, ExternalLink } from 'lucide-react';
 
 export default function Footer({ onOpenDemo }) {
   return (
@@ -22,16 +22,16 @@ export default function Footer({ onOpenDemo }) {
             </div>
 
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm font-sans">
-              A micropayment protocol helping API providers charge per request in shielded ZEC using ZIP-321 payment requests and HTTP 402.
+              CloakPay is a demo exploring pay-per-request API access with Zcash. It shows an HTTP 402 challenge and a ZIP-321-style payment request. Payment verification is simulated; no real ZEC is sent or verified.
             </p>
 
             <div className="flex items-center gap-2 pt-2 text-xs font-mono text-emerald-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>Specification: Zcash Orchard (ZIP-321 &amp; ZIP-316)</span>
+              <span>Standards referenced: RFC 9110 · ZIP-321 · ZIP-316</span>
             </div>
           </div>
 
-          {/* Column 2: Protocol */}
+          {/* Column 2: Protocol references */}
           <div className="md:col-span-2 space-y-3">
             <h4 className="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold">
               Protocol
@@ -39,7 +39,7 @@ export default function Footer({ onOpenDemo }) {
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
                 <a href="#protocol" className="hover:text-emerald-400 transition-colors">
-                  RFC 9110 Specification
+                  RFC 9110 — HTTP semantics
                 </a>
               </li>
               <li>
@@ -49,17 +49,17 @@ export default function Footer({ onOpenDemo }) {
                   rel="noreferrer"
                   className="hover:text-emerald-400 transition-colors flex items-center gap-1"
                 >
-                  ZIP-321 Standard <ExternalLink className="w-3 h-3 text-slate-500" />
+                  ZIP-321 — Payment Request URI standard <ExternalLink className="w-3 h-3 text-slate-500" />
                 </a>
               </li>
               <li>
                 <a
-                  href="https://zcash.readthedocs.io/en/latest/rtd_pages/orchard.html"
+                  href="https://zips.z.cash/zip-0316"
                   target="_blank"
                   rel="noreferrer"
                   className="hover:text-emerald-400 transition-colors flex items-center gap-1"
                 >
-                  Orchard Cryptography <ExternalLink className="w-3 h-3 text-slate-500" />
+                  ZIP-316 — Unified Addresses <ExternalLink className="w-3 h-3 text-slate-500" />
                 </a>
               </li>
               <li>
@@ -75,25 +75,25 @@ export default function Footer({ onOpenDemo }) {
             </ul>
           </div>
 
-          {/* Column 3: Developers */}
+          {/* Column 3: Developer references */}
           <div className="md:col-span-2 space-y-3">
             <h4 className="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold">
-              Developers
+              Developer references
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
                 <a href="#developers" className="hover:text-emerald-400 transition-colors">
-                  Express Middleware
+                  Express middleware (proposed)
                 </a>
               </li>
               <li>
                 <a href="#developers" className="hover:text-emerald-400 transition-colors">
-                  Next.js App Router
+                  Next.js App Router (proposed)
                 </a>
               </li>
               <li>
                 <a href="#developers" className="hover:text-emerald-400 transition-colors">
-                  FastAPI Python
+                  FastAPI Python (proposed)
                 </a>
               </li>
               <li>
@@ -101,17 +101,22 @@ export default function Footer({ onOpenDemo }) {
                   onClick={onOpenDemo}
                   className="hover:text-emerald-400 transition-colors text-left"
                 >
-                  Interactive Simulator
+                  Interactive Simulator (Demo)
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Column 4: Ecosystem & Wallets */}
+          {/* Column 4: Wallet references */}
           <div className="md:col-span-3 space-y-3">
-            <h4 className="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold">
-              Zcash Wallets
-            </h4>
+            <div>
+              <h4 className="text-xs font-mono uppercase tracking-wider text-slate-300 font-bold">
+                Wallet references
+              </h4>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                CloakPay does not connect to wallets in this demo.
+              </p>
+            </div>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
                 <a
@@ -154,8 +159,8 @@ export default function Footer({ onOpenDemo }) {
         {/* Bottom Credits */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-1">
-            <span>Built for the Cypherpunk Future • Powered by</span>
-            <span className="text-emerald-400 font-bold">Zcash (ZEC)</span>
+            <span>Built for the Cypherpunk Future •</span>
+            <span className="text-emerald-400 font-medium">Zcash-focused demo</span>
           </div>
 
           <div className="flex items-center gap-4 text-[11px] font-mono">
@@ -163,7 +168,7 @@ export default function Footer({ onOpenDemo }) {
             <span>•</span>
             <span>No Trackers</span>
             <span>•</span>
-            <span>Open Source Protocol</span>
+            <span>Open-Source Demo</span>
           </div>
         </div>
 
