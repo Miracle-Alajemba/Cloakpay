@@ -204,4 +204,4 @@ Generates optimized static production bundle in `dist/`.
 ---
 
 ## ⚖️ License
-MIT License. Built for the Zcash Cypherpunk Hackathon.
+MIT License. Built for the Zcash.
