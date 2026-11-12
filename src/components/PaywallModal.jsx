@@ -173,7 +173,7 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       {/* Backdrop */}
       <div
         ref={modalBackdropRef}
@@ -188,10 +188,10 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
       {/* Modal Dialog Window */}
       <div
         ref={modalBoxRef}
-        className="relative w-full max-w-lg rounded-2xl bg-cloak-900 border border-white/10 shadow-2xl overflow-hidden z-10"
+        className="relative w-full max-w-lg rounded-2xl bg-cloak-900 border border-white/10 shadow-2xl overflow-hidden z-10 flex flex-col max-h-[calc(100dvh-24px)] sm:max-h-[calc(100dvh-32px)] my-auto"
       >
         {/* Simulation Banner Notice */}
-        <div className="px-4 py-1.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between text-[11px] font-mono text-amber-300">
+        <div className="px-4 py-1 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between text-[11px] font-mono text-amber-300 shrink-0">
           <span className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
             Simulation — no real payment is made
@@ -200,19 +200,17 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
         </div>
 
         {/* Modal Top Header */}
-        <div className="relative px-6 py-4 border-b border-white/10 flex items-center justify-between bg-cloak-850/70">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+        <div className="relative px-5 py-2.5 sm:py-3 border-b border-white/10 flex items-center justify-between bg-cloak-850/70 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-4.5 h-4.5 text-emerald-400" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-white font-display">
-                  Zcash Shielded Payment Request
-                </h3>
-              </div>
-              <p className="text-xs text-slate-400 font-mono">
-                Session token: <span className="text-emerald-400">{sessionId || 'sess_9e14a8f9c'}</span>
+              <h3 className="text-sm sm:text-base font-semibold text-white font-display leading-tight">
+                Zcash Shielded Payment Request
+              </h3>
+              <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+                Session: <span className="text-emerald-400">{sessionId || 'sess_9e14a8f9c'}</span>
               </p>
             </div>
           </div>
@@ -220,24 +218,24 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
           <button
             onClick={() => handleAnimatedClose(onClose)}
             disabled={paymentStatus === 'verifying' || paymentStatus === 'granted'}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
             aria-label="Close Modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4.5 h-4.5" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5">
+        <div className="p-4 sm:p-5 space-y-3 sm:space-y-3.5 overflow-y-auto flex-1">
 
           {/* Amount and pricing summary */}
-          <div className="p-4 rounded-xl bg-cloak-850 border border-white/10 flex items-center justify-between">
+          <div className="px-3.5 py-2 rounded-xl bg-cloak-850 border border-white/10 flex items-center justify-between">
             <div>
-              <span className="text-xs text-slate-400 font-mono uppercase tracking-wider block">
+              <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider block">
                 Required Micropayment
               </span>
-              <div className="flex items-baseline gap-2 mt-0.5">
-                <span className="text-2xl font-semibold text-white font-mono">
+              <div className="flex items-baseline gap-1.5 mt-0.5">
+                <span className="text-xl sm:text-2xl font-semibold text-white font-mono">
                   {amountZEC} <span className="text-emerald-400">ZEC</span>
                 </span>
                 <span className="text-xs text-slate-400 font-mono">
@@ -247,10 +245,10 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
             </div>
 
             <div className="text-right">
-              <span className="text-[11px] text-slate-400 block font-mono">
+              <span className="text-[10px] text-slate-400 block font-mono">
                 Pool / Encoding
               </span>
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-300 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 rounded-full mt-1">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-300 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-full mt-0.5">
                 <Shield className="w-3 h-3 text-emerald-400" />
                 Orchard (ZIP-321 Base64url)
               </span>
@@ -298,11 +296,11 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
 
           {/* TAB 1: QR Code Scanner */}
           {tab === 'qr' && (
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <div className="relative p-4 rounded-xl bg-white shadow-lg">
+            <div className="flex flex-col items-center justify-center space-y-2 sm:space-y-2.5">
+              <div className="relative p-2.5 rounded-xl bg-white shadow-md">
                 <QRCodeSVG
                   value={zip321Uri}
-                  size={180}
+                  size={136}
                   level="M"
                   includeMargin={false}
                   bgColor="#ffffff"
@@ -311,27 +309,27 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
 
                 {/* Center Zcash icon overlay badge */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-9 h-9 rounded-full bg-slate-950 border-2 border-emerald-400 flex items-center justify-center shadow">
-                    <span className="font-bold text-emerald-400 font-mono text-sm leading-none">
+                  <div className="w-7 h-7 rounded-full bg-slate-950 border-2 border-emerald-400 flex items-center justify-center shadow">
+                    <span className="font-bold text-emerald-400 font-mono text-xs leading-none">
                       Z
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="text-center">
-                <p className="text-xs text-slate-300 font-medium">
-                  Scan with any ZIP-321 compatible Zcash wallet (Zashi, YWallet, Zingo!)
+              <div className="text-center max-w-sm">
+                <p className="text-xs text-slate-300">
+                  Scan with a ZIP-321 wallet (Zashi, YWallet, Zingo!)
                 </p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Pre-fills address, 0.005 ZEC, and Base64url-encoded session memo
+                <p className="text-[10px] text-slate-400 mt-0.5">
+                  Pre-fills address, 0.005 ZEC, and Base64url session memo
                 </p>
               </div>
 
               {/* Quick Copy ZIP-321 URI button */}
               <button
                 onClick={() => copyToClipboard(zip321Uri, 'uri')}
-                className="w-full py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-300 hover:text-white transition-colors flex items-center justify-center gap-2 font-mono cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+                className="w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-300 hover:text-white transition-colors flex items-center justify-center gap-2 font-mono cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
               >
                 {copiedField === 'uri' ? (
                   <>
@@ -350,7 +348,7 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
 
           {/* TAB 2: Manual Copy Fields & Spec Compliance */}
           {tab === 'manual' && (
-            <div className="space-y-3 font-mono text-xs">
+            <div className="space-y-2.5 font-mono text-xs">
               {/* Address field */}
               <div className="space-y-1">
                 <div className="text-slate-400 text-[11px] flex items-center justify-between">
@@ -363,7 +361,7 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
                     {copiedField === 'address' ? 'Copied' : 'Copy'}
                   </button>
                 </div>
-                <div className="p-2.5 rounded-lg bg-cloak-950 border border-white/10 text-slate-300 text-[11px] break-all leading-relaxed select-all">
+                <div className="p-2 rounded-lg bg-cloak-950 border border-white/10 text-slate-300 text-[11px] break-all leading-relaxed select-all">
                   {zcashUnifiedAddress}
                 </div>
               </div>
@@ -408,33 +406,33 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
 
           {/* TAB 3: Compatible Wallets */}
           {tab === 'wallets' && (
-            <div className="space-y-2.5 text-xs font-sans">
-              <div className="p-3 rounded-xl bg-cloak-950 border border-white/10 flex items-center justify-between">
+            <div className="space-y-2 text-xs font-sans">
+              <div className="p-2.5 rounded-xl bg-cloak-950 border border-white/10 flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-white">Zashi</h4>
-                  <p className="text-xs text-slate-400">Official Electric Coin Co. shielded wallet with ZIP-321 QR parsing.</p>
+                  <p className="text-[11px] text-slate-400">Official Electric Coin Co. shielded wallet with ZIP-321 QR parsing.</p>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-mono">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-mono shrink-0">
                   Recommended
                 </span>
               </div>
 
-              <div className="p-3 rounded-xl bg-cloak-950 border border-white/10 flex items-center justify-between">
+              <div className="p-2.5 rounded-xl bg-cloak-950 border border-white/10 flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-white">YWallet</h4>
-                  <p className="text-xs text-slate-400">Desktop & mobile wallet supporting fast sync and shielded memo notes.</p>
+                  <p className="text-[11px] text-slate-400">Desktop & mobile wallet supporting fast sync and shielded memo notes.</p>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-white/5 text-slate-300 text-[10px] font-mono">
+                <span className="px-2 py-0.5 rounded bg-white/5 text-slate-300 text-[10px] font-mono shrink-0">
                   Desktop / Mobile
                 </span>
               </div>
 
-              <div className="p-3 rounded-xl bg-cloak-950 border border-white/10 flex items-center justify-between">
+              <div className="p-2.5 rounded-xl bg-cloak-950 border border-white/10 flex items-center justify-between">
                 <div>
                   <h4 className="font-semibold text-white">Zingo! & Nighthawk</h4>
-                  <p className="text-xs text-slate-400">Mobile wallets supporting Unified Addresses and Orchard receiver pools.</p>
+                  <p className="text-[11px] text-slate-400">Mobile wallets supporting Unified Addresses and Orchard receiver pools.</p>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-white/5 text-slate-300 text-[10px] font-mono">
+                <span className="px-2 py-0.5 rounded bg-white/5 text-slate-300 text-[10px] font-mono shrink-0">
                   Mobile
                 </span>
               </div>
@@ -492,11 +490,11 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
           </div>
 
           {/* Testing / Simulator Action Button - Honestly Labeled */}
-          <div className="pt-1">
+          <div className="pt-0.5">
             <button
               onClick={handleSimulatePayment}
               disabled={paymentStatus !== 'waiting'}
-              className="w-full py-3.5 px-4 rounded-xl font-medium text-xs tracking-wide uppercase transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:cursor-not-allowed bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-cloak-950 shadow-emerald-500/20 active:scale-[0.99] disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+              className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-medium text-xs tracking-wide uppercase transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg disabled:cursor-not-allowed bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-cloak-950 shadow-emerald-500/20 active:scale-[0.99] disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
             >
               {paymentStatus === 'waiting' && (
                 <>
@@ -518,7 +516,7 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
               )}
             </button>
 
-            <p className="text-[10px] text-center text-slate-400 mt-2 font-mono">
+            <p className="text-[10px] text-center text-slate-400 mt-1.5 font-mono">
               In production, an Incoming Viewing Key (IVK) scans the provider's node for matching notes.
             </p>
           </div>

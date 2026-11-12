@@ -153,6 +153,11 @@ test('PaywallModal imports and uses encodeZip321Memo and buildZip321Uri', () => 
   assert(paywallModalJsx.includes('encodeZip321Memo'), 'PaywallModal must use encodeZip321Memo');
 });
 
+test('PaywallModal constrains dialog to viewport height with internal scrolling fallback', () => {
+  assert(paywallModalJsx.includes('max-h-[calc(100dvh'), 'Modal dialog must constrain max-height to viewport');
+  assert(paywallModalJsx.includes('overflow-y-auto'), 'Modal body must allow overflow-y-auto fallback');
+});
+
 test('AiDemoTerminal displays both Base64url memo parameter and decoded UTF-8 memo', () => {
   assert(aiDemoJsx.includes('base64urlMemo'), 'AiDemoTerminal must compute base64urlMemo');
   assert(aiDemoJsx.includes('ZIP-321 Base64url Memo Parameter'), 'AiDemoTerminal must show Base64url memo parameter');
