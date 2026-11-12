@@ -384,16 +384,16 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs sm:text-sm font-semibold text-emerald-300 font-sans">
-                      Payment Detected & Verified — Access Granted
+                      Payment Verified (Simulation) — Access Granted
                     </span>
                     <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded font-mono">
-                      IVK Note Match
+                      Simulated IVK Match
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-400 font-sans flex items-center gap-2 mt-0.5">
                     <span>Session: <code className="text-emerald-300 font-mono font-medium">{effectiveSessionId}</code></span>
                     <span>•</span>
-                    <span>Incoming Viewing Key (IVK) memo decryption</span>
+                    <span>Proposed IVK memo decryption</span>
                   </div>
                 </div>
               </div>
@@ -545,7 +545,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                               </span>
                             ) : (
                               <span className="text-emerald-400 font-mono">
-                                ✓ Stream Complete • Verified via Incoming Viewing Key note detection
+                                ✓ Stream Complete • Simulated IVK note detection
                               </span>
                             )}
                           </div>
@@ -692,8 +692,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                 <div className="p-3.5 rounded-xl bg-cloak-900 border border-white/10 text-xs text-slate-300 font-sans flex items-start gap-2.5">
                   <AlertCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                   <p className="leading-relaxed">
-                    <strong>Technical Clarification for Auditors:</strong> Zcash shielding conceals transaction details (sender, recipient, amount) on the public blockchain. 
-                    It does not automatically hide network-layer metadata (IP address, user-agent, or API prompts) from the server hosting the API endpoint.
+                    <strong>Technical Clarification for Auditors:</strong> Shielded Zcash can hide transaction details from public blockchain observers when shielded transactions are used. It does not make API use anonymous: the API provider can see the request it receives and may receive the caller’s IP address and connection metadata. CloakPay’s current demo simulates payment verification; it does not send real ZEC.
                   </p>
                 </div>
 

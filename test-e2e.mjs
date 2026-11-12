@@ -180,6 +180,13 @@ test('Hero and PrivacyComparison do NOT make false "zero IP leakage" or "0 bytes
   assert(!heroJsx.includes('Zero IP or telemetry leakage'), 'False "Zero IP leakage" claim found in Hero');
   assert(!heroJsx.includes('0 Bytes'), 'False "0 Bytes identity logged" claim found in Hero');
   assert(!aiDemoJsx.includes('0 bytes identity leaked'), 'False "0 bytes identity leaked" claim found in AiDemoTerminal');
+  assert(!indexHtml.includes('Zero metadata leaks'), 'False "Zero metadata leaks" found in index.html');
+});
+
+test('PrivacyComparison uses balanced comparisons without unverified fee numbers or WalletConnect as a payment rail', () => {
+  const privacyJsx = readComponent('PrivacyComparison.jsx');
+  assert(!privacyJsx.includes('0.00001'), 'Exact 0.00001 fee claim must not be present in PrivacyComparison');
+  assert(!privacyJsx.includes('walletconnect'), 'WalletConnect must not be compared as a payment rail in PrivacyComparison');
 });
 
 test('PrivacyComparison contains the fact-checked technical-boundary note and simulation statement', () => {

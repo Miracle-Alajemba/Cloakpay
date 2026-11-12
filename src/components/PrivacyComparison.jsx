@@ -36,7 +36,7 @@ export default function PrivacyComparison() {
     },
     {
       metric: 'Network Fee Structure (Illustrative)',
-      cloakpay: { value: 'Fixed network fee model', sub: 'Standard Zcash fee (ZIP-317, ~0.00001 ZEC); separate from API request price' },
+      cloakpay: { value: 'Low network fee model', sub: 'Standard network transaction fee paid to Zcash miners; distinct from the API price set by provider' },
       lightning: { value: 'Variable routing fees', sub: 'Base fee plus proportional fee per hop; depends on route length and channel liquidity' },
       publicChain: { value: 'Variable gas fees', sub: 'Fluctuates with network congestion and smart contract execution complexity' },
       traditional: { value: 'Processor fee structure', sub: 'Typically percentage plus fixed per-transaction fee; often impractical for micro-transactions' },

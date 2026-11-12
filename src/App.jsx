@@ -40,7 +40,7 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-cloak-950 text-slate-100 flex flex-col selection:bg-emerald-500/30 selection:text-emerald-300">
-      
+
       {/* Top Navbar */}
       <Navbar onOpenDemo={() => handleTriggerPaywall()} />
 
@@ -49,7 +49,7 @@ export default function App() {
         <Hero onExploreDemo={scrollToDemo} />
 
         {/* Live Interactive AI Assistant Demo Card with HTTP 402 Paywall */}
-        <AiDemoTerminal 
+        <AiDemoTerminal
           onTriggerPaywall={handleTriggerPaywall}
           isUnlocked={isUnlocked}
           unlockedSessionId={sessionId}
@@ -58,7 +58,7 @@ export default function App() {
         {/* Protocol Step-by-Step Architecture */}
         <ProtocolFlow />
 
-        {/* Privacy Comparison Matrix (CloakPay vs Stripe vs Lightning vs WalletConnect) */}
+        {/* Privacy Comparison Matrix (CloakPay vs Stripe vs Lightning vs Public On-Chain) */}
         <PrivacyComparison />
 
         {/* Developer Integration Code Showcase */}

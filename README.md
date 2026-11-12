@@ -16,21 +16,23 @@
 - **Production Deployment:** [https://cloakpay-zec.vercel.app](https://cloakpay-zec.vercel.app)
 - **Repository:** [https://github.com/Miracle-Alajemba/Cloakpay](https://github.com/Miracle-Alajemba/Cloakpay)
 
+> ⚠️ **Simulation Notice:** CloakPay's current public demo simulates the payment challenge, mempool detection, and access unlock flow. It does not send real ZEC, connect to a live wallet, or verify transactions on mainnet. Accountless access and IVK-based verification are proposed architectural designs.
+
 ---
 
 ## ⚡ Overview & Problem Statement
 
 ### The Problem with Traditional API Monetization
-* **SaaS Subscription Fatigue:** API providers either enforce \$20–\$100+/month recurring SaaS tiers or require credit cards with KYC, identity tracking, and billing profiles.
+* **SaaS Subscription Fatigue:** API providers either enforce $20–$100+/month recurring SaaS tiers or require credit cards with KYC, identity tracking, and billing profiles.
 * **Public Blockchain Linkage:** Traditional Web3 payment models (Ethereum, Solana) expose caller wallet addresses, token balances, and entire transaction graphs on public explorers.
-* **Wallet-Connect Tracking:** Connecting browser wallets leaks RPC endpoint telemetry, client IP addresses (via providers like Infura/Alchemy), and cross-site session fingerprints.
+* **Browser Wallet Telemetry:** Connecting Web3 browser wallets often leaks RPC endpoint telemetry, client IP addresses (via RPC providers), and cross-site session fingerprints.
 
-### The CloakPay Solution
-CloakPay allows API providers to gate individual REST or streaming endpoints behind micropayments denominated in shielded Zcash (ZEC):
-* **Accountless & Frictionless:** Users do not register, create passwords, or link credit cards.
-* **Shielded On-Chain:** Payments use Zcash **Orchard shielded note pools**. Senders, recipients, and transaction amounts are concealed from public blockchain observers.
+### The CloakPay Solution (Proposed Architecture)
+CloakPay proposes a protocol allowing API providers to gate individual REST or streaming endpoints behind micropayments denominated in shielded Zcash (ZEC):
+* **Accountless & Frictionless (Proposed):** Users do not register, create passwords, or link credit cards.
+* **Shielded On-Chain:** Payments use Zcash **Orchard shielded note pools**. Senders, recipients, and transaction amounts are concealed from public blockchain observers when shielded transactions are used.
 * **ZIP-321 Encrypted Memos:** An ephemeral cryptographic session token (`CloakPay:sess_<token>`) is embedded in the 512-byte shielded memo field.
-* **Least-Privilege Key Architecture:** The API server holds only an **Incoming Viewing Key (IVK)** to detect payments and decrypt session memos. No private spending keys are ever stored on the application server.
+* **Least-Privilege Key Architecture (Proposed):** The API server holds only an **Incoming Viewing Key (IVK)** to detect payments and decrypt session memos. No private spending keys are ever stored on the application server.
 
 > **RFC 9110 Compliance Note:**  
 > RFC 9110 reserves HTTP 402 (‘Payment Required’) for future use; it does not define a payment protocol. CloakPay uses 402 as its application-level payment challenge and supplies payment instructions using a ZIP-321 URI.
