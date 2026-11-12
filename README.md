@@ -77,9 +77,7 @@ The API provider's background scanner uses an **Incoming Viewing Key (IVK)** to 
 
 ## 🛡️ Technical & Privacy Boundary
 
-To maintain complete engineering honesty:
-* **What Zcash Shields:** On-chain transaction graph, sender address, recipient address, and payment amounts are shielded from external blockchain observers.
-* **What is Not Hidden:** Calling an API server over HTTP inherently transmits network-layer metadata (client IP address, TLS session data, user-agent, and the prompt text) to that specific API provider. Zcash shielding does not automatically anonymize network transport to the destination server (users seeking network anonymity should pair CloakPay with Tor or VPNs).
+Shielded Zcash can hide transaction details from public blockchain observers when shielded transactions are used. It does not make API use anonymous: the API provider can see the request it receives and may receive the caller’s IP address and connection metadata. CloakPay’s current demo simulates payment verification; it does not send real ZEC.
 
 ---
 

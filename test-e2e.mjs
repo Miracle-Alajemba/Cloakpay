@@ -177,10 +177,10 @@ test('Hero and PrivacyComparison do NOT make false "zero IP leakage" or "0 bytes
   assert(!aiDemoJsx.includes('0 bytes identity leaked'), 'False "0 bytes identity leaked" claim found in AiDemoTerminal');
 });
 
-test('PrivacyComparison explicitly clarifies that Zcash shields on-chain, not IP/prompt to API server', () => {
+test('PrivacyComparison contains the fact-checked technical-boundary note and simulation statement', () => {
   const privacyJsx = readComponent('PrivacyComparison.jsx');
   assert(privacyJsx.includes('Technical boundary:'), 'Privacy boundary note missing in PrivacyComparison');
-  assert(privacyJsx.includes('does not automatically hide'), 'Clarification that network transport is not hidden missing');
+  assert(privacyJsx.includes('Shielded Zcash can hide transaction details from public blockchain observers when shielded transactions are used. It does not make API use anonymous: the API provider can see the request it receives and may receive the caller’s IP address and connection metadata. CloakPay’s current demo simulates payment verification; it does not send real ZEC.'), 'Exact technical boundary note missing in PrivacyComparison');
 });
 
 test('CodeIntegration uses Incoming Viewing Key (ivk), never Full Viewing Key (fvk)', () => {

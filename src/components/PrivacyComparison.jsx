@@ -1,48 +1,45 @@
 import React from 'react';
 import { 
-  Check, 
   EyeOff, 
-  AlertCircle,
-  HelpCircle,
-  Shield
+  AlertCircle
 } from 'lucide-react';
 
 export default function PrivacyComparison() {
   const comparisons = [
     {
       metric: 'Sender Identity on Ledger',
-      cloakpay: { value: 'Shielded on-chain', sub: 'Sender address omitted from public blockchain', status: 'pass' },
-      lightning: { value: 'Node pubkey exposed', sub: 'Routing channel topology observable', status: 'warn' },
-      walletconnect: { value: 'Public account address', sub: 'All balances and past transactions linked', status: 'fail' },
-      stripe: { value: 'Legal name & billing card', sub: 'Full identity, address, and KYC records', status: 'fail' },
+      cloakpay: { value: 'Concealed when shielded', sub: 'Proposed design: sender address hidden from public blockchain when sending from shielded pool' },
+      lightning: { value: 'Public node pubkey', sub: 'Routing node pubkeys are public; private channels offer variable privacy depending on setup' },
+      publicChain: { value: 'Public wallet address', sub: 'Sender address and balance history visible on public ledger' },
+      traditional: { value: 'Cardholder / account identity', sub: 'Card payments link legal name, billing address, and bank profile' },
     },
     {
       metric: 'Account Registration Requirement',
-      cloakpay: { value: 'No account needed', sub: 'Access authenticated per-request via memo', status: 'pass' },
-      lightning: { value: 'Often requires account', sub: 'Custodial LN apps typically require login', status: 'warn' },
-      walletconnect: { value: 'Wallet connection', sub: 'dApps prompt signature and track sessions', status: 'warn' },
-      stripe: { value: 'Mandatory registration', sub: 'Account, email, and payment profile required', status: 'fail' },
+      cloakpay: { value: 'No account needed (Design goal)', sub: 'Planned per-request challenge; simulated in current demo' },
+      lightning: { value: 'Varies by wallet / service', sub: 'Custodial wallets often require accounts; non-custodial nodes do not' },
+      publicChain: { value: 'No account, but wallet required', sub: 'Transactions require a funded crypto wallet and signed payload' },
+      traditional: { value: 'Mandatory registration / KYC', sub: 'Typically requires customer account, email, and billing profile' },
     },
     {
       metric: 'On-Chain Transaction Graph',
-      cloakpay: { value: 'Shielded note pool', sub: 'Orchard Halo 2 zero-knowledge proofs', status: 'pass' },
-      lightning: { value: 'Channel balance probes', sub: 'Probing attacks can link route balances', status: 'warn' },
-      walletconnect: { value: 'Fully public graph', sub: 'Transactions indexable by block explorers', status: 'fail' },
-      stripe: { value: 'Centralized database', sub: 'Records stored across financial institutions', status: 'fail' },
+      cloakpay: { value: 'Concealed in shielded pool', sub: 'Planned use of Orchard shielded pool hides sender, recipient, and amount' },
+      lightning: { value: 'Off-chain payment routing', sub: 'Individual payments not on-chain; routing channel capacity and topology are observable' },
+      publicChain: { value: 'Public transaction graph', sub: 'Transfers, amounts, timestamps, and contract calls are publicly indexable' },
+      traditional: { value: 'Centralized financial records', sub: 'Transactions stored internally across payment processors and banks' },
     },
     {
       metric: 'Network-Layer Metadata (IP / Prompt)',
-      cloakpay: { value: 'Visible to API server', sub: 'Server sees caller IP and prompt; on-chain payment is shielded', status: 'info' },
-      lightning: { value: 'Visible to node & server', sub: 'Gossip protocol and API server see caller IP', status: 'info' },
-      walletconnect: { value: 'Logged by RPC providers', sub: 'RPC nodes (Infura/Alchemy) log IP addresses', status: 'fail' },
-      stripe: { value: 'Full device fingerprint', sub: 'Fraud engine tracks IP, canvas, and browser fingerprint', status: 'fail' },
+      cloakpay: { value: 'Visible to API provider', sub: 'API provider receives prompt, IP address, and connection metadata' },
+      lightning: { value: 'Visible to API & routing nodes', sub: 'API server and intermediate routing nodes may observe connection metadata' },
+      publicChain: { value: 'Visible to API & RPC providers', sub: 'API server and RPC endpoint providers can observe client IP address' },
+      traditional: { value: 'Visible to processor & provider', sub: 'Processor and merchant log IP address, browser fingerprint, and metadata' },
     },
     {
-      metric: 'Typical Settlement Cost',
-      cloakpay: { value: '~$0.0001 (0.00001 ZEC)', sub: 'Standard fixed network fee', status: 'pass' },
-      lightning: { value: 'Variable routing fee', sub: 'Varies with network liquidity and route hops', status: 'pass' },
-      walletconnect: { value: '$0.05 – $10.00+ Gas', sub: 'Subject to blockchain congestion spikes', status: 'fail' },
-      stripe: { value: '2.9% + $0.30 Minimum', sub: 'Prohibitive for individual sub-dollar API calls', status: 'fail' },
+      metric: 'Network Fee Structure (Illustrative)',
+      cloakpay: { value: 'Fixed network fee model', sub: 'Standard Zcash fee (ZIP-317, ~0.00001 ZEC); separate from API request price' },
+      lightning: { value: 'Variable routing fees', sub: 'Base fee plus proportional fee per hop; depends on route length and channel liquidity' },
+      publicChain: { value: 'Variable gas fees', sub: 'Fluctuates with network congestion and smart contract execution complexity' },
+      traditional: { value: 'Processor fee structure', sub: 'Typically percentage plus fixed per-transaction fee; often impractical for micro-transactions' },
     },
   ];
 
@@ -60,7 +57,7 @@ export default function PrivacyComparison() {
             How CloakPay compares to traditional and Web3 payment models
           </h2>
           <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans max-w-2xl mx-auto">
-            Traditional gateways require subscriptions and accounts. Public blockchains expose persistent wallet addresses. CloakPay enables per-request payments using shielded Zcash.
+            Traditional gateways require subscriptions and accounts. Public blockchains expose persistent wallet addresses. CloakPay proposes per-request micropayments using shielded Zcash (currently simulated).
           </p>
         </div>
 
@@ -76,10 +73,15 @@ export default function PrivacyComparison() {
                     Feature / Property
                   </th>
                   <th className="py-4 px-6 bg-emerald-950/30 border-x border-emerald-500/20">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                      <span className="text-sm font-semibold text-emerald-300 font-sans">
-                        CloakPay (Zcash)
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <span className="text-sm font-semibold text-emerald-300 font-sans">
+                          CloakPay (Proposed Zcash Model)
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-emerald-400/80 font-mono block mt-0.5">
+                        Design Goal • Demo Simulated
                       </span>
                     </div>
                   </th>
@@ -87,10 +89,10 @@ export default function PrivacyComparison() {
                     Lightning (L402 / LSAT)
                   </th>
                   <th className="py-4 px-6 text-xs font-medium text-slate-300">
-                    WalletConnect (EVM / Sol)
+                    Public On-Chain (EVM / Solana)
                   </th>
                   <th className="py-4 px-6 text-xs font-medium text-slate-300">
-                    Stripe / Traditional
+                    Traditional Card Gateways
                   </th>
                 </tr>
               </thead>
@@ -129,26 +131,26 @@ export default function PrivacyComparison() {
                       </div>
                     </td>
 
-                    {/* WalletConnect column */}
+                    {/* Public On-Chain column */}
                     <td className="py-4 px-6 text-slate-300">
                       <div>
-                        <div className="font-medium text-red-400">
-                          {row.walletconnect.value}
+                        <div className="font-medium text-slate-200">
+                          {row.publicChain.value}
                         </div>
                         <div className="text-[11px] text-slate-400 mt-0.5">
-                          {row.walletconnect.sub}
+                          {row.publicChain.sub}
                         </div>
                       </div>
                     </td>
 
-                    {/* Stripe column */}
+                    {/* Traditional column */}
                     <td className="py-4 px-6 text-slate-300">
                       <div>
-                        <div className="font-medium text-red-400">
-                          {row.stripe.value}
+                        <div className="font-medium text-slate-200">
+                          {row.traditional.value}
                         </div>
                         <div className="text-[11px] text-slate-400 mt-0.5">
-                          {row.stripe.sub}
+                          {row.traditional.sub}
                         </div>
                       </div>
                     </td>
@@ -160,13 +162,11 @@ export default function PrivacyComparison() {
             </table>
           </div>
 
-          {/* Cryptographic Boundary Clarification */}
+          {/* Cryptographic & Operational Boundary Note */}
           <div className="p-4 bg-cloak-950 border-t border-white/5 flex items-start gap-2.5 text-xs text-slate-300 font-sans">
             <AlertCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
             <p className="leading-relaxed">
-              <strong>Technical boundary:</strong> Zcash shielding ensures transaction details on the blockchain cannot be correlated by third-party observers. 
-              However, calling an API server inherently transmits your HTTP request (IP address, TLS session, and prompt) to that server. 
-              Zcash shielding does not automatically hide network-layer metadata or API prompts from the destination API server.
+              <strong>Technical boundary:</strong> Shielded Zcash can hide transaction details from public blockchain observers when shielded transactions are used. It does not make API use anonymous: the API provider can see the request it receives and may receive the caller’s IP address and connection metadata. CloakPay’s current demo simulates payment verification; it does not send real ZEC.
             </p>
           </div>
         </div>
