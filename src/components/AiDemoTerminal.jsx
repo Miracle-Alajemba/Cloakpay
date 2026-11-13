@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { 
   Bot, 
   Send, 
   ShieldCheck, 
   Lock, 
   Unlock, 
-  Sparkles, 
   Terminal, 
   Copy, 
   Check, 
@@ -112,17 +112,27 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
 
   const lockedWords = selectedPrompt.lockedText.split(' ');
 
-  // GSAP animation on component mount
-  useEffect(() => {
-    const ctx = gsap.context(() => {
+  // GSAP animation with useGSAP and ScrollTrigger
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
       gsap.fromTo(
         terminalRef.current,
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }
+        { opacity: 0, y: 25 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          duration: 0.7, 
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: terminalRef.current,
+            start: 'top 85%',
+            once: true
+          }
+        }
       );
-    }, terminalRef);
-    return () => ctx.revert();
-  }, []);
+    });
+  }, { scope: terminalRef });
 
   // When unlock state transitions to true:
   useEffect(() => {
@@ -264,7 +274,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
             <button
               key={preset.id}
               onClick={() => handleSelectPreset(preset)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                 selectedPrompt.id === preset.id
                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
                   : 'bg-cloak-900/80 text-slate-300 hover:text-white border border-white/10 hover:border-white/20'
@@ -281,7 +291,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
         {/* The Main Terminal Interface Container */}
         <div
           ref={terminalRef}
-          className="rounded-2xl bg-cloak-900/95 border border-white/10 shadow-2xl overflow-hidden backdrop-blur-xl"
+          className="rounded-lg bg-cloak-900 border border-white/10 shadow-2xl overflow-hidden"
         >
           {/* Top Bar of the Terminal */}
           <div className="px-5 py-3.5 bg-cloak-850/80 border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
@@ -308,15 +318,18 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
             {/* Right mode tabs & Simulation Badge */}
             <div className="flex items-center gap-2 flex-wrap">
               {/* Simulation Notice Badge */}
-              <span className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[11px] font-mono">
+              <span className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/25 text-amber-300 text-[11px] font-mono">
                 Simulation — no real payment is made
+              </span>
+              <span className="hidden xl:inline text-amber-400/80 text-[10px] font-mono">
+                PRIVATE ZCASH REGTEST — NO REAL-VALUE ZEC
               </span>
 
               {/* Tab Switcher */}
-              <div className="flex rounded-lg bg-cloak-950 p-0.5 border border-white/10 text-xs overflow-x-auto max-w-full scrollbar-none">
+              <div className="flex rounded-md bg-cloak-950 p-0.5 border border-white/10 text-xs overflow-x-auto max-w-full scrollbar-none">
                 <button
                   onClick={() => setViewMode('assistant')}
-                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+                  className={`px-3 py-1 rounded transition-colors flex items-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                     viewMode === 'assistant'
                       ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
                       : 'text-slate-400 hover:text-white'
@@ -328,7 +341,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
 
                 <button
                   onClick={() => setViewMode('memo-inspector')}
-                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+                  className={`px-3 py-1 rounded transition-colors flex items-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                     viewMode === 'memo-inspector'
                       ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
                       : 'text-slate-400 hover:text-white'
@@ -343,7 +356,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
 
                 <button
                   onClick={() => setViewMode('inspector')}
-                  className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+                  className={`px-3 py-1 rounded transition-colors flex items-center gap-1.5 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                     viewMode === 'inspector'
                       ? 'bg-emerald-500/20 text-emerald-300 font-semibold'
                       : 'text-slate-400 hover:text-white'
@@ -418,24 +431,24 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                 
                 {/* User Prompt Bubble */}
                 <div className="flex items-start gap-3 max-w-3xl">
-                  <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-md bg-white/[0.04] border border-white/10 flex items-center justify-center shrink-0">
                     <span className="text-xs font-mono font-bold text-slate-300">REQ</span>
                   </div>
-                  <div className="p-4 rounded-xl bg-cloak-850 border border-white/10 text-slate-200 text-sm leading-relaxed font-sans">
+                  <div className="p-4 rounded-md bg-cloak-850/90 border border-white/10 text-slate-200 text-sm leading-relaxed font-sans">
                     {inputQuery}
                   </div>
                 </div>
 
                 {/* AI Response Bubble */}
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center shrink-0">
                     <Bot className="w-4 h-4 text-emerald-400" />
                   </div>
 
                   <div className="flex-1 overflow-hidden space-y-4">
                     
                     {/* Unlocked Preview Section (Visible to everyone) */}
-                    <div className="p-5 rounded-xl bg-cloak-950/80 border border-white/5 font-mono text-xs sm:text-[13px] text-slate-300 leading-relaxed whitespace-pre-wrap select-text">
+                    <div className="p-5 rounded-md bg-cloak-950/80 border border-white/5 font-mono text-xs sm:text-[13px] text-slate-300 leading-relaxed whitespace-pre-wrap select-text">
                       {selectedPrompt.previewText}
                     </div>
 
@@ -443,15 +456,26 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                     {!isUnlocked ? (
                       <div
                         ref={paywallCardRef}
-                        className="relative p-6 sm:p-8 rounded-xl bg-cloak-850/90 border border-emerald-500/30 overflow-hidden text-center"
+                        className="rounded-lg bg-cloak-950 border border-white/10 overflow-hidden"
                       >
+                        {/* Wire Header: Stripe-style HTTP 402 Status Bar */}
+                        <div className="px-4 py-2 bg-cloak-900/90 border-b border-white/10 flex items-center justify-between text-[11px] font-mono">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-red-400" />
+                            <span className="text-red-400 font-semibold">HTTP/1.1 402 Payment Required</span>
+                            <span className="text-slate-500 hidden sm:inline">•</span>
+                            <span className="text-slate-400 hidden sm:inline">application/problem+json</span>
+                          </div>
+                          <span className="text-amber-400 text-[10px] uppercase tracking-wider font-semibold">Challenge Active</span>
+                        </div>
+
                         {/* Interactive Paywall Trigger Card */}
-                        <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center">
-                          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-3">
-                            <Lock className="w-5 h-5" />
+                        <div className="p-6 sm:p-7 relative z-10 max-w-lg mx-auto flex flex-col items-center text-center">
+                          <div className="w-9 h-9 rounded-md bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400 mb-3">
+                            <Lock className="w-4.5 h-4.5" />
                           </div>
 
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-400 text-[11px] font-mono font-semibold mb-2">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-red-500/10 border border-red-500/25 text-red-400 text-[11px] font-mono font-semibold mb-2">
                             <span>HTTP 402 PAYMENT REQUIRED</span>
                           </div>
 
@@ -463,7 +487,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                             This API endpoint requires a micropayment of 0.005 ZEC (~$0.18). Pay from any Zcash wallet using a ZIP-321 payment request.
                           </p>
 
-                          <div className="mt-4 p-3 rounded-lg bg-cloak-900 border border-white/10 w-full flex items-center justify-between text-xs font-mono">
+                          <div className="mt-4 p-3 rounded-md bg-cloak-900 border border-white/10 w-full flex items-center justify-between text-xs font-mono">
                             <div className="text-left">
                               <span className="text-[10px] text-slate-400 uppercase block">Required Amount</span>
                               <span className="font-semibold text-emerald-400 text-sm tabular-nums">0.005 ZEC</span>
@@ -477,7 +501,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
 
                           <button
                             onClick={() => onTriggerPaywall(selectedPrompt.query)}
-                            className="mt-5 w-full py-3 px-6 rounded-xl font-medium text-xs sm:text-sm text-cloak-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:from-emerald-300 hover:to-teal-200 transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+                            className="mt-5 w-full py-2.5 px-5 rounded-md font-medium text-xs sm:text-sm text-cloak-950 bg-emerald-400 hover:bg-emerald-300 transition-colors shadow-sm active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                           >
                             <Unlock className="w-4 h-4" />
                             <span>Unlock with Shielded Zcash (0.005 ZEC)</span>
@@ -493,7 +517,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                       /* Unlocked Document Section (Typewriter word-by-word streaming) */
                       <div 
                         ref={streamingContainerRef}
-                        className="p-5 rounded-xl bg-cloak-950 border border-emerald-500/25 font-mono text-xs sm:text-[13px] text-slate-200 leading-relaxed select-text relative"
+                        className="p-5 rounded-lg bg-cloak-950 border border-emerald-500/25 font-mono text-xs sm:text-[13px] text-slate-200 leading-relaxed select-text relative"
                       >
                         {/* Header badge inside unlocked text */}
                         <div className="flex flex-wrap items-center justify-between pb-3 mb-3 border-b border-emerald-500/20 text-[11px] text-emerald-400 gap-2">
@@ -807,12 +831,12 @@ Cache-Control: no-cache, no-store`}
                   value={inputQuery}
                   onChange={(e) => setInputQuery(e.target.value)}
                   placeholder="Enter a prompt to test the paid API flow..."
-                  className="w-full pl-4 pr-12 py-3 rounded-xl bg-cloak-950 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-white placeholder-slate-500 font-sans outline-none transition-all focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  className="w-full pl-4 pr-12 py-2.5 rounded-md bg-cloak-950 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm text-white placeholder-slate-500 font-sans outline-none transition-all focus-visible:ring-2 focus-visible:ring-emerald-400"
                 />
                 <button
                   type="submit"
                   disabled={isGenerating}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition-colors cursor-pointer disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 transition-colors cursor-pointer disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                   aria-label="Submit Question"
                 >
                   <Send className="w-4 h-4" />
@@ -824,7 +848,7 @@ Cache-Control: no-cache, no-store`}
                   type="button"
                   onClick={handleResetDemo}
                   title="Reset demo session"
-                  className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+                  className="p-2.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>

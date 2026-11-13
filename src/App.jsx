@@ -10,7 +10,7 @@ import RoadmapStatus from './components/RoadmapStatus';
 import Footer from './components/Footer';
 
 export default function App() {
-  const [isPaywallOpen, setIsPaywallOpen] = useState(false);
+  const [isPaywallOpen, setIsPaywallOpen] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('modal'));
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [sessionId, setSessionId] = useState('sess_9e14a8f9c');
   const [activeQueryPrompt, setActiveQueryPrompt] = useState('');

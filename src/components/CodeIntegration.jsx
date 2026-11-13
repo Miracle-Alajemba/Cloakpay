@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { Copy, Check, Code2, Shield } from 'lucide-react';
 
 const CODE_EXAMPLES = {
@@ -80,6 +82,28 @@ async def synthesize_contract(
 export default function CodeIntegration() {
   const [activeTab, setActiveTab] = useState('express');
   const [copied, setCopied] = useState(false);
+  const codeSectionRef = useRef(null);
+
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      gsap.fromTo(
+        codeSectionRef.current?.querySelector('.code-window'),
+        { opacity: 0, y: 25 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: codeSectionRef.current,
+            start: 'top 82%',
+            once: true
+          }
+        }
+      );
+    });
+  }, { scope: codeSectionRef });
 
   const currentCode = CODE_EXAMPLES[activeTab];
 
@@ -90,25 +114,25 @@ export default function CodeIntegration() {
   };
 
   return (
-    <section id="developers" className="py-20 relative bg-cloak-900/30 border-t border-white/5">
+    <section id="developers" ref={codeSectionRef} className="py-20 relative bg-cloak-900/30 border-t border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-3">
+        {/* Section Header: Stripe Docs-style left-aligned technical header */}
+        <div className="max-w-3xl mb-12">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/10 text-emerald-400 text-xs font-mono mb-3">
             <Code2 className="w-3.5 h-3.5" />
-            <span>Developer Reference Integration</span>
+            <span>03 / DEVELOPER INTEGRATION</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-[-0.025em] font-display">
             Add per-request payments to your API in minutes
           </h2>
-          <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans max-w-2xl mx-auto">
+          <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans">
             CloakPay middleware intercepts incoming HTTP requests, returns an HTTP 402 challenge with a ZIP-321 payment URI, and unlocks the handler when the incoming transaction is detected.
           </p>
         </div>
 
         {/* Code Showcase Terminal Window */}
-        <div className="max-w-4xl mx-auto rounded-2xl bg-cloak-950 border border-white/10 shadow-2xl overflow-hidden">
+        <div className="code-window max-w-4xl mx-auto rounded-lg bg-cloak-950 border border-white/10 shadow-2xl overflow-hidden">
           
           {/* Terminal Tabs & Header */}
           <div className="px-5 py-3.5 bg-cloak-900/90 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
@@ -119,7 +143,7 @@ export default function CodeIntegration() {
                 role="tab"
                 aria-selected={activeTab === 'express'}
                 onClick={() => setActiveTab('express')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+                className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                   activeTab === 'express'
                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold'
                     : 'text-slate-400 hover:text-white'
@@ -132,7 +156,7 @@ export default function CodeIntegration() {
                 role="tab"
                 aria-selected={activeTab === 'nextjs'}
                 onClick={() => setActiveTab('nextjs')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+                className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                   activeTab === 'nextjs'
                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold'
                     : 'text-slate-400 hover:text-white'
@@ -145,7 +169,7 @@ export default function CodeIntegration() {
                 role="tab"
                 aria-selected={activeTab === 'python'}
                 onClick={() => setActiveTab('python')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+                className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                   activeTab === 'python'
                     ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold'
                     : 'text-slate-400 hover:text-white'
@@ -162,7 +186,7 @@ export default function CodeIntegration() {
               </span>
               <button
                 onClick={handleCopy}
-                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+                className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? 'Copied' : 'Copy'}</span>

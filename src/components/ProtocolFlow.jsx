@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { 
   FileTerminal, 
   Radio, 
@@ -11,6 +13,29 @@ import {
 } from 'lucide-react';
 
 export default function ProtocolFlow() {
+  const flowContainerRef = useRef(null);
+
+  useGSAP(() => {
+    const mm = gsap.matchMedia();
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      gsap.fromTo(
+        flowContainerRef.current?.querySelectorAll('.flow-card') || [],
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.12,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: flowContainerRef.current,
+            start: 'top 82%',
+            once: true
+          }
+        }
+      );
+    });
+  }, { scope: flowContainerRef });
   const steps = [
     {
       step: '01',
@@ -60,45 +85,45 @@ export default function ProtocolFlow() {
   ];
 
   return (
-    <section id="protocol" className="py-20 relative bg-cloak-900/40 border-y border-white/5">
+    <section id="protocol" ref={flowContainerRef} className="py-20 relative bg-cloak-900/40 border-y border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Section Title */}
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-3">
+        {/* Section Title: Stripe Docs-style left-aligned technical header */}
+        <div className="max-w-3xl mb-12">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/10 text-emerald-400 text-xs font-mono mb-3">
             <Lock className="w-3.5 h-3.5" />
-            <span>Technical Architecture</span>
+            <span>02 / TECHNICAL ARCHITECTURE</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-[-0.025em] font-display">
             How CloakPay works under the hood
           </h2>
-          <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans max-w-2xl mx-auto">
+          <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans">
             RFC 9110 reserves HTTP 402 (&lsquo;Payment Required&rsquo;) for future use; it does not define a payment protocol. CloakPay uses 402 as its application-level payment challenge and supplies payment instructions using a ZIP-321 URI.
           </p>
         </div>
 
-        {/* 3 Step Protocol Flow Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+        {/* 3 Step Protocol Flow Cards: Architectural workbench grid with 1px hairline dividers */}
+        <div className="rounded-lg border border-white/10 bg-cloak-900/40 divide-y md:divide-y-0 md:divide-x divide-white/10 grid grid-cols-1 md:grid-cols-3 overflow-hidden">
           
           {steps.map((s) => {
             const Icon = s.icon;
             return (
               <div
                 key={s.step}
-                className="relative p-6 sm:p-7 rounded-2xl bg-cloak-900/90 border border-white/10 hover:border-emerald-500/30 transition-all flex flex-col justify-between"
+                className="flow-card p-6 sm:p-7 flex flex-col justify-between hover:bg-white/[0.02] transition-colors"
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <span className="text-2xl font-semibold font-mono text-slate-500 tabular-nums">
+                    <span className="text-2xl font-semibold font-mono text-emerald-400 tabular-nums">
                       {s.step}
                     </span>
-                    <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10">
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10">
                       {s.badge}
                     </span>
                   </div>
 
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} border ${s.border} flex items-center justify-center mb-4`}>
-                    <Icon className={`w-5 h-5 ${s.iconColor}`} />
+                  <div className="w-8 h-8 rounded-md bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-emerald-400">
+                    <Icon className="w-4 h-4" />
                   </div>
 
                   <h3 className="text-base font-semibold text-white mb-2 font-display">
@@ -111,7 +136,7 @@ export default function ProtocolFlow() {
                 </div>
 
                 {/* Details list */}
-                <div className="pt-4 border-t border-white/5 space-y-2">
+                <div className="pt-4 border-t border-white/10 space-y-2">
                   {s.details.map((detail, dIdx) => (
                     <div key={dIdx} className="flex items-start gap-2 text-xs text-slate-300 font-sans">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
@@ -127,7 +152,7 @@ export default function ProtocolFlow() {
         </div>
 
         {/* Viewing Key Security & Architecture Clarification */}
-        <div className="mt-12 p-6 sm:p-7 rounded-2xl bg-cloak-850/80 border border-white/10 flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div className="mt-10 p-6 sm:p-7 rounded-lg bg-cloak-900/60 border border-white/10 flex flex-col lg:flex-row items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl text-center lg:text-left">
             <div className="inline-flex items-center gap-1.5 text-xs font-mono text-emerald-400">
               <Shield className="w-3.5 h-3.5" />
@@ -148,7 +173,7 @@ export default function ProtocolFlow() {
               href="https://zips.z.cash/zip-0321"
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-slate-200 transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+              className="px-4 py-2.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-slate-200 transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
             >
               <Key className="w-3.5 h-3.5 text-emerald-400" />
               <span>Read ZIP-321 Specification</span>
