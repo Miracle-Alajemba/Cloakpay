@@ -46,7 +46,7 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
   const [paymentStatus, setPaymentStatus] = useState('waiting');
   const [tab, setTab] = useState('qr'); // 'qr' | 'manual' | 'wallets'
 
-  // GSAP Spring Entrance
+  // GSAP Spring Entrance & Keyboard Navigation
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -69,14 +69,23 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
           }
         );
       });
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape' && paymentStatus !== 'verifying' && paymentStatus !== 'granted') {
+          handleAnimatedClose(onClose);
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+
       return () => {
         document.body.style.overflow = 'unset';
+        window.removeEventListener('keydown', handleKeyDown);
         ctx.revert();
       };
     } else {
       document.body.style.overflow = 'unset';
     }
-  }, [isOpen]);
+  }, [isOpen, paymentStatus]);
 
   // Countdown timer
   useEffect(() => {
@@ -235,10 +244,10 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
                 Required Micropayment
               </span>
               <div className="flex items-baseline gap-1.5 mt-0.5">
-                <span className="text-xl sm:text-2xl font-semibold text-white font-mono">
+                <span className="text-xl sm:text-2xl font-semibold text-white font-mono tabular-nums">
                   {amountZEC} <span className="text-emerald-400">ZEC</span>
                 </span>
-                <span className="text-xs text-slate-400 font-mono">
+                <span className="text-xs text-slate-400 font-mono tabular-nums">
                   ({usdValue})
                 </span>
               </div>
@@ -483,7 +492,7 @@ export default function PaywallModal({ isOpen, onClose, onPaymentSuccess, sessio
             </div>
 
             {/* Countdown timer */}
-            <div className="flex items-center gap-1.5 font-mono text-slate-400 text-[11px]">
+            <div className="flex items-center gap-1.5 font-mono text-slate-400 text-[11px] tabular-nums">
               <Clock className="w-3.5 h-3.5 text-slate-500" />
               <span>Expires: {formatTime(timeLeft)}</span>
             </div>

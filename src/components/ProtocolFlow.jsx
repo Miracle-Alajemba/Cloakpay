@@ -89,7 +89,7 @@ export default function ProtocolFlow() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <span className="text-2xl font-semibold font-mono text-slate-500">
+                    <span className="text-2xl font-semibold font-mono text-slate-500 tabular-nums">
                       {s.step}
                     </span>
                     <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10">

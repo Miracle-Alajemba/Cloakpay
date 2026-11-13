@@ -140,7 +140,7 @@ export default function Hero({ onExploreDemo }) {
             <div className="p-6 rounded-2xl bg-cloak-900/80 border border-white/10 hover:border-emerald-500/30 transition-colors flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono font-semibold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                  <span className="text-xs font-mono font-semibold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 tabular-nums">
                     Step 01
                   </span>
                   <Terminal className="w-4 h-4 text-slate-400" />
@@ -158,7 +158,7 @@ export default function Hero({ onExploreDemo }) {
             <div className="p-6 rounded-2xl bg-cloak-900/80 border border-white/10 hover:border-emerald-500/30 transition-colors flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono font-semibold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                  <span className="text-xs font-mono font-semibold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 tabular-nums">
                     Step 02
                   </span>
                   <Wallet className="w-4 h-4 text-slate-400" />
@@ -176,7 +176,7 @@ export default function Hero({ onExploreDemo }) {
             <div className="p-6 rounded-2xl bg-cloak-900/80 border border-white/10 hover:border-emerald-500/30 transition-colors flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono font-semibold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                  <span className="text-xs font-mono font-semibold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 tabular-nums">
                     Step 03
                   </span>
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />

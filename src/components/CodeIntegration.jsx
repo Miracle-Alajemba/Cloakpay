@@ -114,8 +114,10 @@ export default function CodeIntegration() {
           <div className="px-5 py-3.5 bg-cloak-900/90 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
             
             {/* Left language tabs */}
-            <div className="flex items-center gap-2">
+            <div role="tablist" aria-label="Code language examples" className="flex items-center gap-2">
               <button
+                role="tab"
+                aria-selected={activeTab === 'express'}
                 onClick={() => setActiveTab('express')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                   activeTab === 'express'
@@ -127,6 +129,8 @@ export default function CodeIntegration() {
               </button>
 
               <button
+                role="tab"
+                aria-selected={activeTab === 'nextjs'}
                 onClick={() => setActiveTab('nextjs')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                   activeTab === 'nextjs'
@@ -138,6 +142,8 @@ export default function CodeIntegration() {
               </button>
 
               <button
+                role="tab"
+                aria-selected={activeTab === 'python'}
                 onClick={() => setActiveTab('python')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
                   activeTab === 'python'

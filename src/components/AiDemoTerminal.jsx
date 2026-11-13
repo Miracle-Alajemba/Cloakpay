@@ -466,8 +466,8 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                           <div className="mt-4 p-3 rounded-lg bg-cloak-900 border border-white/10 w-full flex items-center justify-between text-xs font-mono">
                             <div className="text-left">
                               <span className="text-[10px] text-slate-400 uppercase block">Required Amount</span>
-                              <span className="font-semibold text-emerald-400 text-sm">0.005 ZEC</span>
-                              <span className="text-slate-400 text-[11px] ml-1">(~$0.18)</span>
+                              <span className="font-semibold text-emerald-400 text-sm tabular-nums">0.005 ZEC</span>
+                              <span className="text-slate-400 text-[11px] ml-1 tabular-nums">(~$0.18)</span>
                             </div>
                             <div className="text-right">
                               <span className="text-[10px] text-slate-400 uppercase block">Encoding</span>
@@ -723,7 +723,7 @@ export default function AiDemoTerminal({ onTriggerPaywall, isUnlocked, unlockedS
                         </tr>
                         <tr>
                           <td className="py-2 px-3 text-emerald-400 font-medium">Amount</td>
-                          <td className="py-2 px-3 text-slate-300">0.005 ZEC</td>
+                          <td className="py-2 px-3 text-slate-300 tabular-nums">0.005 ZEC</td>
                           <td className="py-2 px-3 text-slate-400">Expected payment amount per request</td>
                         </tr>
                         <tr>
