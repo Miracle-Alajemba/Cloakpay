@@ -26,12 +26,12 @@ export default {
         }
       },
       fontFamily: {
-        display: ['Outfit', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       letterSpacing: {
-        tightest: '-0.025em',
+        tightest: '-0.015em',
       },
       boxShadow: {
         'shield-glow': '0 0 35px -5px rgba(16, 185, 129, 0.25)',

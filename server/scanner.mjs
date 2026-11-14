@@ -6,52 +6,94 @@ const MERCHANT_DATA_DIR = process.env.MERCHANT_DATA_DIR || '/home/miracle-alajem
 const ZINGO_SERVER = process.env.ZINGO_SERVER || 'https://testnet.zec.rocks:443';
 const IPV4_PRELOAD = process.env.ZINGO_PRELOAD || '/home/miracle-alajemba/.cache/ipv4_only.so';
 
-/**
- * Queries the merchant watch-only wallet on public Zcash Testnet.
- * Resolves with all received value transfers and the current chain height.
- */
-export async function queryMerchantWallet() {
-  return new Promise((resolve, reject) => {
-    const proc = spawn(ZINGO_CLI, [
-      '--chain', 'testnet',
-      '--server', ZINGO_SERVER,
-      '--data-dir', MERCHANT_DATA_DIR,
-    ], {
-      env: {
-        ...process.env,
-        LD_PRELOAD: IPV4_PRELOAD,
-      },
-    });
+// In-flight scan promise coalescing and short-lived caching
+let inFlightQueryPromise = null;
+let lastScanResult = null;
+let lastScanTimestamp = 0;
+let lastScanError = null;
+const CACHE_TTL_MS = 2500; // Reuse scan result if younger than 2.5s to prevent wallet lock contention
 
+/**
+ * Returns current sanitized readiness status of the watch-only scanner.
+ */
+export function getScannerStatus() {
+  const now = Date.now();
+  const isHealthy = lastScanResult !== null && !lastScanError;
+  // If data is older than 30 seconds and no query is in flight, trigger background refresh
+  if (isHealthy && (now - lastScanTimestamp) > 30000 && !inFlightQueryPromise) {
+    queryMerchantWallet({ force: true }).catch(() => {});
+  }
+  return {
+    ready: isHealthy,
+    currentHeight: lastScanResult ? lastScanResult.currentHeight : 0,
+    transfersCount: lastScanResult ? lastScanResult.valueTransfers.length : 0,
+    lastScanAgeMs: lastScanTimestamp ? now - lastScanTimestamp : null,
+    inFlight: inFlightQueryPromise !== null,
+    lastError: lastScanError ? lastScanError.message : null,
+  };
+}
+
+/**
+ * Executes an individual zingo-cli scan session with watchdog timeout and clean termination.
+ */
+function executeScanSession() {
+  return new Promise((resolve, reject) => {
+    let proc = null;
     let stdout = '';
     let stderr = '';
     let commandsSent = false;
+    let isSettled = false;
+
+    const watchdog = setTimeout(() => {
+      if (isSettled) return;
+      isSettled = true;
+      if (proc) {
+        try { proc.kill('SIGKILL'); } catch (e) {}
+      }
+      reject(new Error('Scanner query timed out after 20 seconds'));
+    }, 20000);
+
+    try {
+      proc = spawn(ZINGO_CLI, [
+        '--chain', 'testnet',
+        '--server', ZINGO_SERVER,
+        '--data-dir', MERCHANT_DATA_DIR,
+      ], {
+        env: {
+          ...process.env,
+          LD_PRELOAD: IPV4_PRELOAD,
+        },
+      });
+    } catch (spawnErr) {
+      clearTimeout(watchdog);
+      return reject(new Error(`Failed to spawn scanner process: ${spawnErr.message}`));
+    }
 
     proc.stdout.on('data', (d) => {
       stdout += d;
-      // Send commands once the interactive prompt is ready and background sync has had a moment to scan
+      // Send commands once the interactive prompt is ready and background sync has initiated
       if (!commandsSent && stdout.includes('>>')) {
         commandsSent = true;
         setTimeout(() => {
           try {
             proc.stdin.write('messages\nheight\nquit\n');
-          } catch (e) {
-            // proc may have closed
-          }
-        }, 2500);
+          } catch (e) {}
+        }, 1200);
       }
     });
-    proc.stderr.on('data', (d) => { stderr += d; });
 
-    const timeout = setTimeout(() => {
-      proc.kill('SIGKILL');
-      reject(new Error('Scanner query timed out after 30 seconds'));
-    }, 30000);
+    proc.stderr.on('data', (d) => {
+      stderr += d;
+    });
 
     proc.on('close', (code) => {
-      clearTimeout(timeout);
+      clearTimeout(watchdog);
+      if (isSettled) return;
+      isSettled = true;
+
       if (code !== 0 && !stdout.includes('"value_transfers"')) {
-        return reject(new Error(`Scanner exited with code ${code}: ${stderr || stdout}`));
+        const sanitizedErr = (stderr || stdout).slice(0, 160).replace(/[\r\n]+/g, ' ');
+        return reject(new Error(`Scanner exited with code ${code}: ${sanitizedErr}`));
       }
 
       try {
@@ -73,6 +115,7 @@ export async function queryMerchantWallet() {
         resolve({
           valueTransfers,
           currentHeight,
+          scannedAt: Date.now(),
         });
       } catch (err) {
         reject(new Error(`Failed to parse scanner output: ${err.message}`));
@@ -80,10 +123,68 @@ export async function queryMerchantWallet() {
     });
 
     proc.on('error', (err) => {
-      clearTimeout(timeout);
-      reject(err);
+      clearTimeout(watchdog);
+      if (isSettled) return;
+      isSettled = true;
+      reject(new Error(`Scanner process error: ${err.message}`));
     });
   });
+}
+
+/**
+ * Queries the merchant watch-only wallet on public Zcash Testnet with single-flight deduplication.
+ * If a scan is already running, subsequent callers await the same in-flight Promise.
+ * If a result was obtained within CACHE_TTL_MS, it is returned immediately without re-spawning.
+ */
+export async function queryMerchantWallet({ force = false } = {}) {
+  const now = Date.now();
+
+  if (!force && lastScanResult && (now - lastScanTimestamp) < CACHE_TTL_MS) {
+    return lastScanResult;
+  }
+
+  if (inFlightQueryPromise) {
+    return inFlightQueryPromise;
+  }
+
+  inFlightQueryPromise = executeScanSession()
+    .then((result) => {
+      lastScanResult = result;
+      lastScanTimestamp = Date.now();
+      lastScanError = null;
+      return result;
+    })
+    .catch((err) => {
+      lastScanError = err;
+      throw err;
+    })
+    .finally(() => {
+      inFlightQueryPromise = null;
+    });
+
+  return inFlightQueryPromise;
+}
+
+/**
+ * Explicit check for scanner readiness used by health endpoints and server startup.
+ */
+export async function checkScannerReadiness() {
+  try {
+    const res = await queryMerchantWallet({ force: true });
+    return {
+      ready: true,
+      currentHeight: res.currentHeight,
+      transfersCount: res.valueTransfers.length,
+      lastError: null,
+    };
+  } catch (err) {
+    return {
+      ready: false,
+      currentHeight: 0,
+      transfersCount: 0,
+      lastError: err.message,
+    };
+  }
 }
 
 /**

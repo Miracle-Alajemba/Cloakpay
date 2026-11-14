@@ -3,50 +3,50 @@ import { Shield, ExternalLink } from 'lucide-react';
 
 export default function Footer({ onOpenDemo }) {
   return (
-    <footer className="bg-cloak-950 border-t border-white/10 py-12 text-slate-400 font-sans">
+    <footer className="bg-white border-t border-slate-200 py-12 text-slate-500 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Main Product Row */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-white/10">
-          
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-slate-100">
+
           {/* Identity & Plain-Language Summary */}
           <div className="space-y-2 max-w-lg text-left">
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-6 h-6 rounded bg-emerald-500/10 border border-emerald-500/20">
-                <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <div className="flex items-center justify-center w-6 h-6 rounded bg-emerald-50 border border-emerald-200">
+                <Shield className="w-3.5 h-3.5 text-emerald-700" />
               </div>
-              <span className="text-base font-semibold tracking-tight text-white font-display">
-                Cloak<span className="text-emerald-400">Pay</span>
+              <span className="text-base font-semibold tracking-tight text-slate-900 font-display">
+                Cloak<span className="text-emerald-700">Pay</span>
               </span>
             </div>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-slate-600 leading-relaxed">
               Pay-per-request API micropayments powered by shielded Zcash via HTTP 402.
             </p>
           </div>
 
           {/* Useful Product & Developer Links */}
-          <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium text-slate-300" aria-label="Footer Navigation">
+          <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium text-slate-600" aria-label="Footer Navigation">
             <a
               href="#demo"
-              className="hover:text-emerald-400 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 rounded px-1"
+              className="hover:text-emerald-700 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded px-1"
             >
               How it works
             </a>
             <a
               href="#protocol"
-              className="hover:text-emerald-400 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 rounded px-1"
+              className="hover:text-emerald-700 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded px-1"
             >
               Architecture
             </a>
             <a
               href="#comparison"
-              className="hover:text-emerald-400 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 rounded px-1"
+              className="hover:text-emerald-700 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded px-1"
             >
               Privacy
             </a>
             <a
               href="#developers"
-              className="hover:text-emerald-400 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 rounded px-1"
+              className="hover:text-emerald-700 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded px-1"
             >
               Developers
             </a>
@@ -54,30 +54,30 @@ export default function Footer({ onOpenDemo }) {
               href="https://zips.z.cash/zip-0321"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-emerald-400 transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 rounded px-1"
+              className="hover:text-emerald-700 transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded px-1"
             >
               <span>ZIP-321 Spec</span>
-              <ExternalLink className="w-3 h-3 text-slate-500" />
+              <ExternalLink className="w-3 h-3 text-slate-400" />
             </a>
             <a
               href="https://github.com/Miracle-Alajemba/Cloakpay"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-emerald-400 transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 rounded px-1"
+              className="hover:text-emerald-700 transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded px-1"
             >
               <span>Source</span>
-              <ExternalLink className="w-3 h-3 text-slate-500" />
+              <ExternalLink className="w-3 h-3 text-slate-400" />
             </a>
           </nav>
 
         </div>
 
         {/* Bottom Metadata */}
-        <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-400">
+        <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-500">
           <p>
             RFC 9110 and ZIP-321 specification compliant micropayments
           </p>
-          <div className="font-mono text-[11px] text-slate-400">
+          <div className="font-mono text-[11px] text-slate-500">
             © 2026 CloakPay. MIT License.
           </div>
         </div>

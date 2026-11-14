@@ -1,15 +1,14 @@
 import React, { useRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { 
-  FileTerminal, 
-  Radio, 
-  Cpu, 
-  Lock, 
-  Key, 
+import {
+  FileTerminal,
+  Radio,
+  Cpu,
+  Lock,
+  Key,
   CheckCircle2,
-  Shield,
-  AlertCircle
+  Shield
 } from 'lucide-react';
 
 export default function ProtocolFlow() {
@@ -36,6 +35,7 @@ export default function ProtocolFlow() {
       );
     });
   }, { scope: flowContainerRef });
+
   const steps = [
     {
       step: '01',
@@ -48,9 +48,6 @@ export default function ProtocolFlow() {
         'Session token is tied to the caller request session',
       ],
       icon: FileTerminal,
-      color: 'from-amber-500/15 to-amber-950/25',
-      border: 'border-amber-500/25',
-      iconColor: 'text-amber-400',
     },
     {
       step: '02',
@@ -63,9 +60,6 @@ export default function ProtocolFlow() {
         'Compatible with standard wallets (Zashi, YWallet, Zingo!)',
       ],
       icon: Radio,
-      color: 'from-emerald-500/15 to-emerald-950/25',
-      border: 'border-emerald-500/25',
-      iconColor: 'text-emerald-400',
     },
     {
       step: '03',
@@ -78,68 +72,65 @@ export default function ProtocolFlow() {
         'No user account or credit card required',
       ],
       icon: Cpu,
-      color: 'from-teal-500/15 to-teal-950/25',
-      border: 'border-teal-500/25',
-      iconColor: 'text-teal-400',
     },
   ];
 
   return (
-    <section id="protocol" ref={flowContainerRef} className="py-20 relative bg-cloak-900/40 border-y border-white/5">
+    <section id="protocol" ref={flowContainerRef} className="py-20 relative bg-[#fafaf9] border-y border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Section Title: Stripe Docs-style left-aligned technical header */}
+
+        {/* Section Title */}
         <div className="max-w-3xl mb-12">
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/10 text-emerald-400 text-xs font-mono mb-3">
-            <Lock className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-mono mb-3">
+            <Lock className="w-3.5 h-3.5 text-emerald-700" />
             <span>02 / TECHNICAL ARCHITECTURE</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-[-0.025em] font-display">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-slate-900 tracking-[-0.025em] font-display">
             How CloakPay works under the hood
           </h2>
-          <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans">
+          <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed font-sans">
             RFC 9110 reserves HTTP 402 (&lsquo;Payment Required&rsquo;) for future use; it does not define a payment protocol. CloakPay uses 402 as its application-level payment challenge and supplies payment instructions using a ZIP-321 URI.
           </p>
         </div>
 
-        {/* 3 Step Protocol Flow Cards: Architectural workbench grid with 1px hairline dividers */}
-        <div className="rounded-lg border border-white/10 bg-cloak-900/40 divide-y md:divide-y-0 md:divide-x divide-white/10 grid grid-cols-1 md:grid-cols-3 overflow-hidden">
-          
+        {/* 3 Step Protocol Flow Cards: Architectural workbench grid */}
+        <div className="rounded-xl border border-slate-200 bg-white shadow-xs divide-y md:divide-y-0 md:divide-x divide-slate-200 grid grid-cols-1 md:grid-cols-3 overflow-hidden">
+
           {steps.map((s) => {
             const Icon = s.icon;
             return (
               <div
                 key={s.step}
-                className="flow-card p-6 sm:p-7 flex flex-col justify-between hover:bg-white/[0.02] transition-colors"
+                className="flow-card p-6 sm:p-7 flex flex-col justify-between hover:bg-slate-50/50 transition-colors"
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <span className="text-2xl font-semibold font-mono text-emerald-400 tabular-nums">
+                    <span className="text-2xl font-semibold font-mono text-emerald-600 tabular-nums">
                       {s.step}
                     </span>
-                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10">
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                       {s.badge}
                     </span>
                   </div>
 
-                  <div className="w-8 h-8 rounded-md bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-emerald-400">
+                  <div className="w-8 h-8 rounded-md bg-emerald-50 border border-emerald-200 flex items-center justify-center mb-4 text-emerald-700">
                     <Icon className="w-4 h-4" />
                   </div>
 
-                  <h3 className="text-base font-semibold text-white mb-2 font-display">
+                  <h3 className="text-base font-semibold text-slate-900 mb-2 font-display">
                     {s.title}
                   </h3>
 
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-5 font-sans">
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-5 font-sans">
                     {s.description}
                   </p>
                 </div>
 
                 {/* Details list */}
-                <div className="pt-4 border-t border-white/10 space-y-2">
+                <div className="pt-4 border-t border-slate-100 space-y-2">
                   {s.details.map((detail, dIdx) => (
-                    <div key={dIdx} className="flex items-start gap-2 text-xs text-slate-300 font-sans">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                    <div key={dIdx} className="flex items-start gap-2 text-xs text-slate-600 font-sans">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                       <span>{detail}</span>
                     </div>
                   ))}
@@ -152,18 +143,18 @@ export default function ProtocolFlow() {
         </div>
 
         {/* Viewing Key Security & Architecture Clarification */}
-        <div className="mt-10 p-6 sm:p-7 rounded-lg bg-cloak-900/60 border border-white/10 flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div className="mt-10 p-6 sm:p-7 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col lg:flex-row items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl text-center lg:text-left">
-            <div className="inline-flex items-center gap-1.5 text-xs font-mono text-emerald-400">
-              <Shield className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-1.5 text-xs font-mono text-emerald-800">
+              <Shield className="w-3.5 h-3.5 text-emerald-600" />
               <span>LEAST-PRIVILEGE SECURITY DESIGN</span>
             </div>
-            <h3 className="text-lg font-semibold text-white font-display">
+            <h3 className="text-lg font-semibold text-slate-900 font-display">
               Why Incoming Viewing Keys (IVKs) protect API providers
             </h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
-              API providers only deploy an <strong>Incoming Viewing Key (IVK)</strong> to their servers. 
-              An IVK allows scanning for incoming transactions and decrypting the memo field to authenticate session tokens, 
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
+              API providers only deploy an <strong>Incoming Viewing Key (IVK)</strong> to their servers.
+              An IVK allows scanning for incoming transactions and decrypting the memo field to authenticate session tokens,
               but has zero authority to spend funds or view outgoing transactions. Spending keys remain in cold storage.
             </p>
           </div>
@@ -173,9 +164,9 @@ export default function ProtocolFlow() {
               href="https://zips.z.cash/zip-0321"
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-2.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-slate-200 transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+              className="px-4 py-2.5 rounded-md bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-mono text-slate-700 transition-colors flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
             >
-              <Key className="w-3.5 h-3.5 text-emerald-400" />
+              <Key className="w-3.5 h-3.5 text-emerald-600" />
               <span>Read ZIP-321 Specification</span>
             </a>
           </div>

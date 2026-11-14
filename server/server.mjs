@@ -1,6 +1,6 @@
 import http from 'node:http';
 import { store } from './store.mjs';
-import { scanForPayment } from './scanner.mjs';
+import { scanForPayment, getScannerStatus, queryMerchantWallet } from './scanner.mjs';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const HOST = process.env.HOST || '127.0.0.1';
@@ -84,13 +84,22 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = parsedUrl.pathname;
 
-  // Health check
+  // Health check & Scanner Readiness
   if (req.method === 'GET' && pathname === '/api/health') {
     return sendJson(res, 200, {
       status: 'ok',
       network: 'Zcash Testnet',
       merchantAddress: MERCHANT_ADDRESS,
       tazValueNotice: 'TAZ has no real-world value',
+      scanner: getScannerStatus(),
+    });
+  }
+
+  // Dedicated scanner readiness endpoint
+  if (req.method === 'GET' && pathname === '/api/scanner-status') {
+    return sendJson(res, 200, {
+      status: 'ok',
+      scanner: getScannerStatus(),
     });
   }
 
@@ -180,17 +189,30 @@ const server = http.createServer(async (req, res) => {
         });
       }
 
-      // Scan merchant watch-only wallet
-      const payment = await scanForPayment({
-        expectedMemo: session.memo,
-        expectedZatoshis: session.amountZatoshis,
-      });
+      // Scan merchant watch-only wallet with fail-closed safety
+      let payment = null;
+      try {
+        payment = await scanForPayment({
+          expectedMemo: session.memo,
+          expectedZatoshis: session.amountZatoshis,
+        });
+      } catch (scanErr) {
+        console.warn(`[Scanner Status] Scan in progress/pending: ${scanErr.message}`);
+        return sendJson(res, 200, {
+          status: 'waiting',
+          unlocked: false,
+          confirmations: 0,
+          scannerReady: false,
+          message: 'Scanner synchronizing with Zcash Testnet node...',
+        });
+      }
 
       if (!payment) {
         return sendJson(res, 200, {
           status: 'waiting',
           unlocked: false,
           confirmations: 0,
+          scannerReady: true,
           message: 'No incoming payment detected for this session memo yet.',
         });
       }
@@ -268,4 +290,10 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`[CloakPay Server] Running on http://${HOST}:${PORT}`);
   console.log(`[CloakPay Server] Configured Merchant Orchard Address: ${MERCHANT_ADDRESS}`);
+  // Initial background scanner warm-up
+  queryMerchantWallet().then((res) => {
+    console.log(`[CloakPay Server] Watch-only scanner ready. Chain height: ${res.currentHeight}, confirmed transfers: ${res.valueTransfers.length}`);
+  }).catch((err) => {
+    console.warn(`[CloakPay Server] Initial scanner warm-up note: ${err.message}`);
+  });
 });

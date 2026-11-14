@@ -1,6 +1,6 @@
 import React from 'react';
-import { 
-  EyeOff, 
+import {
+  EyeOff,
   AlertCircle
 } from 'lucide-react';
 
@@ -44,112 +44,112 @@ export default function PrivacyComparison() {
   ];
 
   return (
-    <section id="comparison" className="py-20 relative">
+    <section id="comparison" className="py-20 relative bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-3">
-            <EyeOff className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-mono mb-3">
+            <EyeOff className="w-3.5 h-3.5 text-emerald-700" />
             <span>Privacy & Architecture Benchmark</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-[-0.025em] font-display">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-slate-900 tracking-[-0.025em] font-display">
             How CloakPay compares to traditional and Web3 payment models
           </h2>
-          <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans max-w-2xl mx-auto">
+          <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed font-sans max-w-2xl mx-auto">
             Traditional gateways require subscriptions and accounts. Public blockchains expose persistent wallet addresses. CloakPay proposes per-request micropayments using shielded Zcash (currently simulated).
           </p>
         </div>
 
         {/* Comparison Table Container */}
-        <div className="rounded-2xl bg-cloak-900 border border-white/10 overflow-hidden shadow-2xl">
+        <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[700px]">
-              
+
               {/* Table Head */}
               <thead>
-                <tr className="border-b border-white/10 bg-cloak-850/80">
-                  <th className="py-4 px-6 text-xs font-mono text-slate-400 uppercase tracking-wider">
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="py-4 px-6 text-xs font-mono text-slate-600 uppercase tracking-wider">
                     Feature / Property
                   </th>
-                  <th className="py-4 px-6 bg-emerald-950/30 border-x border-emerald-500/20">
+                  <th className="py-4 px-6 bg-emerald-50/70 border-x border-emerald-200">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                        <span className="text-sm font-semibold text-emerald-300 font-sans">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        <span className="text-sm font-semibold text-emerald-950 font-sans">
                           CloakPay (Proposed Zcash Model)
                         </span>
                       </div>
-                      <span className="text-[10px] text-emerald-400/80 font-mono block mt-0.5">
+                      <span className="text-[10px] text-emerald-800 font-mono block mt-0.5">
                         Design Goal • Demo Simulated
                       </span>
                     </div>
                   </th>
-                  <th className="py-4 px-6 text-xs font-medium text-slate-300">
+                  <th className="py-4 px-6 text-xs font-medium text-slate-700">
                     Lightning (L402 / LSAT)
                   </th>
-                  <th className="py-4 px-6 text-xs font-medium text-slate-300">
+                  <th className="py-4 px-6 text-xs font-medium text-slate-700">
                     Public On-Chain (EVM / Solana)
                   </th>
-                  <th className="py-4 px-6 text-xs font-medium text-slate-300">
+                  <th className="py-4 px-6 text-xs font-medium text-slate-700">
                     Traditional Card Gateways
                   </th>
                 </tr>
               </thead>
 
               {/* Table Body */}
-              <tbody className="divide-y divide-white/5 text-xs font-sans">
+              <tbody className="divide-y divide-slate-100 text-xs font-sans">
                 {comparisons.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
-                    
+                  <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
+
                     {/* Metric Name */}
-                    <td className="py-4 px-6 font-medium text-slate-200">
+                    <td className="py-4 px-6 font-medium text-slate-900">
                       {row.metric}
                     </td>
 
                     {/* CloakPay column (Highlighted) */}
-                    <td className="py-4 px-6 bg-emerald-950/15 border-x border-emerald-500/20">
+                    <td className="py-4 px-6 bg-emerald-50/30 border-x border-emerald-200">
                       <div>
-                        <div className="font-semibold text-white">
+                        <div className="font-semibold text-slate-900">
                           {row.cloakpay.value}
                         </div>
-                        <div className="text-[11px] text-slate-300 mt-0.5">
+                        <div className="text-[11px] text-slate-600 mt-0.5">
                           {row.cloakpay.sub}
                         </div>
                       </div>
                     </td>
 
                     {/* Lightning column */}
-                    <td className="py-4 px-6 text-slate-300">
+                    <td className="py-4 px-6 text-slate-700">
                       <div>
-                        <div className="font-medium text-slate-200">
+                        <div className="font-medium text-slate-900">
                           {row.lightning.value}
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
+                        <div className="text-[11px] text-slate-500 mt-0.5">
                           {row.lightning.sub}
                         </div>
                       </div>
                     </td>
 
                     {/* Public On-Chain column */}
-                    <td className="py-4 px-6 text-slate-300">
+                    <td className="py-4 px-6 text-slate-700">
                       <div>
-                        <div className="font-medium text-slate-200">
+                        <div className="font-medium text-slate-900">
                           {row.publicChain.value}
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
+                        <div className="text-[11px] text-slate-500 mt-0.5">
                           {row.publicChain.sub}
                         </div>
                       </div>
                     </td>
 
                     {/* Traditional column */}
-                    <td className="py-4 px-6 text-slate-300">
+                    <td className="py-4 px-6 text-slate-700">
                       <div>
-                        <div className="font-medium text-slate-200">
+                        <div className="font-medium text-slate-900">
                           {row.traditional.value}
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
+                        <div className="text-[11px] text-slate-500 mt-0.5">
                           {row.traditional.sub}
                         </div>
                       </div>
@@ -163,8 +163,8 @@ export default function PrivacyComparison() {
           </div>
 
           {/* Cryptographic & Operational Boundary Note */}
-          <div className="p-4 bg-cloak-950 border-t border-white/5 flex items-start gap-2.5 text-xs text-slate-300 font-sans">
-            <AlertCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-start gap-2.5 text-xs text-slate-600 font-sans">
+            <AlertCircle className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
             <p className="leading-relaxed">
               <strong>Technical boundary:</strong> Shielded Zcash can hide transaction details from public blockchain observers when shielded transactions are used. It does not make API use anonymous: the API provider can see the request it receives and may receive the caller’s IP address and connection metadata. CloakPay’s current demo simulates payment verification; it does not send real ZEC.
             </p>

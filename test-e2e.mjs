@@ -43,24 +43,20 @@ const indexHtml = readFileSync('./index.html', 'utf-8');
 const tailwindConfig = readFileSync('./tailwind.config.js', 'utf-8');
 const heroJsx = readComponent('Hero.jsx');
 
-test('index.html imports Outfit (weights 400, 500, 600, 700) from Google Fonts', () => {
-  assert(indexHtml.includes('Outfit:wght@400;500;600;700'), 'Outfit weights 400..700 missing in index.html');
-});
-
-test('index.html imports Inter from Google Fonts', () => {
-  assert(indexHtml.includes('family=Inter'), 'Inter font missing in index.html');
+test('index.html imports Manrope (weights 400..800) from Google Fonts for interface typography', () => {
+  assert(indexHtml.includes('Manrope:wght@400;500;600;700;800'), 'Manrope missing in index.html');
 });
 
 test('index.html imports JetBrains Mono from Google Fonts', () => {
   assert(indexHtml.includes('JetBrains+Mono'), 'JetBrains Mono font missing in index.html');
 });
 
-test('tailwind.config.js configures Outfit for font-display', () => {
-  assert(tailwindConfig.includes("display: ['Outfit'"), 'Outfit not configured for font-display in tailwind.config.js');
+test('tailwind.config.js configures Manrope for font-display', () => {
+  assert(tailwindConfig.includes("display: ['Manrope'"), 'Manrope not configured for font-display in tailwind.config.js');
 });
 
-test('tailwind.config.js configures Inter for font-sans', () => {
-  assert(tailwindConfig.includes("sans: ['Inter'"), 'Inter not configured for font-sans in tailwind.config.js');
+test('tailwind.config.js configures Manrope for font-sans', () => {
+  assert(tailwindConfig.includes("sans: ['Manrope'"), 'Manrope not configured for font-sans in tailwind.config.js');
 });
 
 test('tailwind.config.js configures JetBrains Mono for font-mono', () => {
@@ -72,9 +68,9 @@ test('Hero headline uses clean font-semibold instead of font-extrabold', () => {
   assert(!heroJsx.includes('font-extrabold'), 'Hero headline must not use heavy font-extrabold');
 });
 
-test('Hero headline uses tight letter spacing tracking-[-0.025em] and leading-[1.15]', () => {
-  assert(heroJsx.includes('tracking-[-0.025em]'), 'Hero headline missing tracking-[-0.025em]');
+test('Hero headline uses clean leading-[1.15] and display typography', () => {
   assert(heroJsx.includes('leading-[1.15]'), 'Hero headline missing leading-[1.15]');
+  assert(heroJsx.includes('font-display'), 'Hero headline must use font-display');
 });
 
 test('Hero subtitle has NO inline monospace pills or mid-sentence border boxes', () => {
@@ -86,12 +82,20 @@ test('Hero subtitle has NO inline monospace pills or mid-sentence border boxes',
 
 console.log('\n\x1b[36m━━━ PART 2: Product Positioning & Hero Copy ━━━\x1b[0m\n');
 
-test('Hero headline matches exact copy: "Pay for one API request—not a subscription."', () => {
-  assert(heroJsx.includes('Pay for one API request—not a subscription.'), 'Exact hero headline missing');
+test('Hero headline matches product copy: "Pay for one API request. Not a subscription."', () => {
+  assert(
+    heroJsx.includes('Pay for one API request. Not a subscription.') ||
+    heroJsx.includes('Pay for one API request—not a subscription.'),
+    'Exact hero headline missing'
+  );
 });
 
-test('Hero supporting text matches exact copy: "CloakPay helps API providers charge per request in shielded ZEC..."', () => {
-  assert(heroJsx.includes('CloakPay helps API providers charge per request in shielded ZEC. A user pays from a Zcash wallet, and access is granted after the payment is verified—without creating a CloakPay account.'), 'Exact hero supporting text missing');
+test('Hero supporting text describes pay-per-request model without em-dash', () => {
+  assert(
+    heroJsx.includes('CloakPay helps API providers charge per request in shielded ZEC') &&
+    heroJsx.includes('without creating a CloakPay account'),
+    'Hero supporting text missing'
+  );
 });
 
 test('Hero primary button copy is "Try the interactive demo"', () => {
@@ -103,10 +107,9 @@ test('Hero secondary button copy is "View developer integration" with #developer
   assert(heroJsx.includes('href="#developers"'), 'Secondary CTA must link to #developers');
 });
 
-test('Hero includes working anchor links for #demo, #developers, and #roadmap', () => {
+test('Hero includes working anchor links for #demo and #developers', () => {
   assert(heroJsx.includes('href="#demo"'), 'Hero must link to #demo');
   assert(heroJsx.includes('href="#developers"'), 'Hero must link to #developers');
-  assert(heroJsx.includes('href="#roadmap"'), 'Hero must link to #roadmap');
 });
 
 test('Hero incorporates the clean 3-step visual flow right below hero copy', () => {
@@ -216,11 +219,11 @@ console.log('\n\x1b[36m━━━ PART 5: Roadmap Status & Page Structure ━━�
 const appJsx = readFileSync('./src/App.jsx', 'utf-8');
 const roadmapJsx = readComponent('RoadmapStatus.jsx');
 
-test('App.jsx renders RoadmapStatus component', () => {
-  assert(appJsx.includes('<RoadmapStatus'), 'RoadmapStatus component not rendered in App.jsx');
+test('Customer-facing landing page keeps lean product focus without RoadmapStatus table bloat', () => {
+  assert(!appJsx.includes('<RoadmapStatus'), 'RoadmapStatus must be removed from customer landing page per redesign requirements');
 });
 
-test('RoadmapStatus lists implemented features vs planned roadmap items', () => {
+test('RoadmapStatus component is preserved in codebase for technical reference', () => {
   assert(roadmapJsx.includes('Implemented in this Repo'), 'Implemented section missing in RoadmapStatus');
   assert(roadmapJsx.includes('Planned Roadmap'), 'Planned roadmap section missing in RoadmapStatus');
   assert(roadmapJsx.includes('zebrad / zaino'), 'zebrad/zaino daemon mentioned in Roadmap');

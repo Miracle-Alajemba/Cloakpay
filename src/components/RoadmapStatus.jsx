@@ -47,39 +47,39 @@ export default function RoadmapStatus() {
   ];
 
   return (
-    <section id="roadmap" ref={sectionRef} className="py-20 relative bg-cloak-900/30 border-t border-white/5">
+    <section id="roadmap" ref={sectionRef} className="py-20 relative bg-[#fafaf9] border-t border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
         {/* Section Header: Customer-focused */}
         <div className="max-w-3xl mb-10 text-left">
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/10 text-emerald-400 text-xs font-mono mb-3">
-            <Shield className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-mono mb-3">
+            <Shield className="w-3.5 h-3.5 text-emerald-700" />
             <span>Core Capabilities</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-[-0.025em] font-display">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-slate-900 tracking-tight font-display">
             Built for API Providers
           </h2>
-          <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans">
+          <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed font-sans">
             Direct, private monetization designed for the decentralized web.
           </p>
         </div>
 
         {/* Capabilities Grid: Clean 2x2 Architectural Grid */}
-        <div className="capabilities-grid max-w-5xl rounded-lg border border-white/10 bg-cloak-900/60 divide-y md:divide-y-0 grid grid-cols-1 md:grid-cols-2 divide-white/10 overflow-hidden text-left">
+        <div className="capabilities-grid max-w-5xl rounded-xl border border-slate-200 bg-white divide-y md:divide-y-0 grid grid-cols-1 md:grid-cols-2 divide-slate-200 overflow-hidden text-left shadow-xs">
           {capabilities.map((cap, idx) => (
             <div
               key={idx}
-              className={`p-6 sm:p-7 space-y-2 hover:bg-white/[0.01] transition-colors ${
-                idx % 2 === 0 ? 'md:border-r border-white/10' : ''
-              } ${idx < 2 ? 'md:border-b border-white/10' : ''}`}
+              className={`p-6 sm:p-7 space-y-2 hover:bg-slate-50/50 transition-colors ${
+                idx % 2 === 0 ? 'md:border-r border-slate-200' : ''
+              } ${idx < 2 ? 'md:border-b border-slate-200' : ''}`}
             >
               <div className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <h3 className="text-sm font-semibold text-white font-sans">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <h3 className="text-sm font-semibold text-slate-900 font-sans">
                   {cap.title}
                 </h3>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed pl-6.5 font-sans">
+              <p className="text-xs text-slate-600 leading-relaxed pl-6.5 font-sans">
                 {cap.desc}
               </p>
             </div>

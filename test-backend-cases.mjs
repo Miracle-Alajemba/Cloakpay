@@ -242,6 +242,32 @@ async function runTests() {
     assert.strictEqual(computeConfirmations(confirmedNote, 4618560), 3, 'Deep block must compute correct confirmation depth');
   });
 
+  // 11. Scanner readiness reporting in health and status endpoints
+  await asyncTest('GET /api/health and GET /api/scanner-status report scanner readiness', async () => {
+    const healthRes = await request('/api/health');
+    assert.strictEqual(healthRes.status, 200);
+    assert.ok(healthRes.body.scanner, 'Health endpoint must include scanner object');
+    assert.strictEqual(typeof healthRes.body.scanner.ready, 'boolean');
+
+    const statusRes = await request('/api/scanner-status');
+    assert.strictEqual(statusRes.status, 200);
+    assert.strictEqual(statusRes.body.status, 'ok');
+    assert.ok(statusRes.body.scanner);
+    assert.strictEqual(typeof statusRes.body.scanner.inFlight, 'boolean');
+  });
+
+  // 12. Fail-closed safety on scanner errors
+  await asyncTest('Scanner errors fail closed and never unlock protected response', async () => {
+    // When verify-payment is called and scanner is busy or encounters an error, it must return unlocked: false
+    const res = await request('/api/verify-payment', {
+      method: 'POST',
+      body: { sessionId: sessionData.sessionId },
+    });
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.unlocked, false, 'Must never unlock on scanner error or pending state');
+    assert.strictEqual(res.body.confirmations, 0);
+  });
+
   console.log(`\n━━━ SUMMARY ━━━`);
   console.log(`  Tests: ${passed + failed} total, ${passed} passed, ${failed} failed\n`);
 

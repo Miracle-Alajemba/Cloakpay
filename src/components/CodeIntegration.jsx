@@ -79,6 +79,40 @@ async def synthesize_contract(
   }
 };
 
+function renderHighlightedCode(code) {
+  return code.split('\n').map((line, idx) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('//') || trimmed.startsWith('#')) {
+      return (
+        <div key={idx} className="text-slate-400 italic">
+          {line}
+        </div>
+      );
+    }
+    const parts = line.split(/('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|process\.env\.[A-Z_!]+|os\.environ\["[A-Z_]+"\]|\b(?:import|export|from|const|async|await|return|def|class|with)\b|ivk:)/g);
+    return (
+      <div key={idx} className="leading-relaxed">
+        {parts.map((part, pIdx) => {
+          if (!part) return null;
+          if (part === 'ivk:') {
+            return <span key={pIdx} className="text-emerald-700 font-bold">{part}</span>;
+          }
+          if (/^['"]/.test(part)) {
+            return <span key={pIdx} className="text-emerald-700">{part}</span>;
+          }
+          if (/\b(?:import|export|from|const|async|await|return|def|class|with)\b/.test(part)) {
+            return <span key={pIdx} className="text-indigo-600 font-semibold">{part}</span>;
+          }
+          if (/^process\.env|^os\.environ/.test(part)) {
+            return <span key={pIdx} className="text-amber-800 font-medium">{part}</span>;
+          }
+          return <span key={pIdx} className="text-slate-800">{part}</span>;
+        })}
+      </div>
+    );
+  });
+}
+
 export default function CodeIntegration() {
   const [activeTab, setActiveTab] = useState('express');
   const [copied, setCopied] = useState(false);
@@ -114,39 +148,39 @@ export default function CodeIntegration() {
   };
 
   return (
-    <section id="developers" ref={codeSectionRef} className="py-20 relative bg-cloak-900/30 border-t border-white/5">
+    <section id="developers" ref={codeSectionRef} className="py-20 relative bg-[#fafaf9] border-t border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Section Header: Stripe Docs-style left-aligned technical header */}
+        {/* Section Header */}
         <div className="max-w-3xl mb-12">
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/[0.04] border border-white/10 text-emerald-400 text-xs font-mono mb-3">
-            <Code2 className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-mono mb-3">
+            <Code2 className="w-3.5 h-3.5 text-emerald-700" />
             <span>03 / DEVELOPER INTEGRATION</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-[-0.025em] font-display">
+          <h2 className="text-3xl sm:text-4xl font-semibold text-slate-900 tracking-tight font-display">
             Add per-request payments to your API in minutes
           </h2>
-          <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed font-sans">
+          <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed font-sans">
             CloakPay middleware intercepts incoming HTTP requests, returns an HTTP 402 challenge with a ZIP-321 payment URI, and unlocks the handler when the incoming transaction is detected.
           </p>
         </div>
 
-        {/* Code Showcase Terminal Window */}
-        <div className="code-window max-w-4xl mx-auto rounded-lg bg-cloak-950 border border-white/10 shadow-2xl overflow-hidden">
+        {/* Code Showcase Terminal Window - Light Visual Theme */}
+        <div className="code-window max-w-4xl mx-auto rounded-xl bg-white border border-slate-200 shadow-xs overflow-hidden">
           
           {/* Terminal Tabs & Header */}
-          <div className="px-5 py-3.5 bg-cloak-900/90 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
+          <div className="px-5 py-3 bg-slate-50/90 border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
             
             {/* Left language tabs */}
-            <div role="tablist" aria-label="Code language examples" className="flex items-center gap-2">
+            <div role="tablist" aria-label="Code language examples" className="flex items-center gap-1.5 p-1 rounded-lg bg-slate-100 border border-slate-200/80 text-xs">
               <button
                 role="tab"
                 aria-selected={activeTab === 'express'}
                 onClick={() => setActiveTab('express')}
-                className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+                className={`px-3 py-1.5 rounded-md font-sans text-xs transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
                   activeTab === 'express'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-slate-900 border border-slate-200/80 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 border border-transparent'
                 }`}
               >
                 Node.js / Express
@@ -156,10 +190,10 @@ export default function CodeIntegration() {
                 role="tab"
                 aria-selected={activeTab === 'nextjs'}
                 onClick={() => setActiveTab('nextjs')}
-                className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+                className={`px-3 py-1.5 rounded-md font-sans text-xs transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
                   activeTab === 'nextjs'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-slate-900 border border-slate-200/80 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 border border-transparent'
                 }`}
               >
                 Next.js Route
@@ -169,10 +203,10 @@ export default function CodeIntegration() {
                 role="tab"
                 aria-selected={activeTab === 'python'}
                 onClick={() => setActiveTab('python')}
-                className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
+                className={`px-3 py-1.5 rounded-md font-sans text-xs transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
                   activeTab === 'python'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-slate-900 border border-slate-200/80 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900 border border-transparent'
                 }`}
               >
                 Python FastAPI
@@ -181,35 +215,35 @@ export default function CodeIntegration() {
 
             {/* Right: Filename & Copy button */}
             <div className="flex items-center gap-3">
-              <span className="text-xs font-mono text-slate-400">
+              <span className="text-xs font-mono text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
                 {currentCode.filename}
               </span>
               <button
                 onClick={handleCopy}
-                className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+                className="px-2.5 py-1.5 rounded-md bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer text-xs flex items-center gap-1.5 shadow-2xs focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? 'Copied' : 'Copy'}</span>
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                <span className="font-sans font-medium">{copied ? 'Copied' : 'Copy'}</span>
               </button>
             </div>
 
           </div>
 
-          {/* Terminal Code Body */}
-          <div className="p-6 overflow-x-auto font-mono text-xs sm:text-[13px] leading-relaxed text-slate-300 bg-cloak-950">
+          {/* Terminal Code Body - Light Neutral Surface with Dark Readable Text */}
+          <div className="p-6 overflow-x-auto font-mono text-xs sm:text-[13px] leading-relaxed text-slate-800 bg-[#fafaf9] border-b border-slate-200">
             <pre className="select-all">
-              <code>{currentCode.code}</code>
+              <code>{renderHighlightedCode(currentCode.code)}</code>
             </pre>
           </div>
 
           {/* Security note footer */}
-          <div className="px-6 py-3.5 bg-cloak-900/60 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-slate-400">
-            <div className="flex items-center gap-2">
-              <span className="text-emerald-400">$</span>
-              <span>npm install @cloakpay/sdk</span>
+          <div className="px-6 py-3 bg-slate-50 flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-slate-600">
+            <div className="flex items-center gap-2 bg-white px-2.5 py-1 rounded border border-slate-200 shadow-2xs">
+              <span className="text-emerald-700 font-bold">$</span>
+              <span className="text-slate-800">npm install @cloakpay/sdk</span>
             </div>
-            <div className="flex items-center gap-2 text-[11px] font-sans text-slate-300">
-              <Shield className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <div className="flex items-center gap-2 text-xs font-sans text-slate-600">
+              <Shield className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
               <span>Uses Incoming Viewing Key (IVK) only — no spending keys on server</span>
             </div>
           </div>
