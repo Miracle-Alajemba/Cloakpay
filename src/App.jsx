@@ -12,7 +12,13 @@ import Footer from './components/Footer';
 export default function App() {
   const [isPaywallOpen, setIsPaywallOpen] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('modal'));
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [sessionId, setSessionId] = useState('sess_9e14a8f9c');
+  const [sessionId, setSessionId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const param = new URLSearchParams(window.location.search).get('session');
+      if (param) return param;
+    }
+    return 'sess_9e14a8f9c';
+  });
   const [activeQueryPrompt, setActiveQueryPrompt] = useState('');
 
   // Triggered when user attempts to submit prompt or clicks unlock button in AI demo

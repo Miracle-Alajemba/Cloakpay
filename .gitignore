@@ -23,3 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 
+# Local server database, wallet data, secrets, and agent runtime data
+server/data/
+*.dat
+.env
+.env.*
+!.env.example
+.agents/
+skills-lock.json
+
